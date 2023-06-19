@@ -65,7 +65,177 @@
       "name": "convert",
       "title": "Convert Images",
       "description": "Convert the selected images to the specified format",
-      "mode": "view"
+      "mode": "view",
+      "preferences": [
+        {
+          "title": "Enabled Formats",
+          "label": "ASTC",
+          "name": "showASTC",
+          "description": "Whether to show ASTC as a conversion option",
+          "type": "checkbox",
+          "default": true
+        },
+        {
+          "label": "BMP",
+          "name": "showBMP",
+          "description": "Whether to show BMP as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "DDS",
+          "name": "showDDS",
+          "description": "Whether to show DDS as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "EXR",
+          "name": "showEXR",
+          "description": "Whether to show EXR as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "GIF",
+          "name": "showGIF",
+          "description": "Whether to show GIF as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "HEIC",
+          "name": "showHEIC",
+          "description": "Whether to show HEIC as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "HEICS",
+          "name": "showHEICS",
+          "description": "Whether to show HEICS as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "ICNS",
+          "name": "showICNS",
+          "description": "Whether to show ICNS as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "ICO",
+          "name": "showICO",
+          "description": "Whether to show ICO as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "JPEG",
+          "name": "showJPEG",
+          "description": "Whether to show JPEG as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "JP2",
+          "name": "showJP2",
+          "description": "Whether to show JP2 as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "KTX",
+          "name": "showKTX",
+          "description": "Whether to show KTX as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "PBM",
+          "name": "showPBM",
+          "description": "Whether to show PBM as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "PDF",
+          "name": "showPDF",
+          "description": "Whether to show PDF as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "PNG",
+          "name": "showPNG",
+          "description": "Whether to show PNG as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "PSD",
+          "name": "showPSD",
+          "description": "Whether to show PSD as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "PVR",
+          "name": "showPVR",
+          "description": "Whether to show PVR as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "TGA",
+          "name": "showTGA",
+          "description": "Whether to show TGA as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "TIFF",
+          "name": "showTIFF",
+          "description": "Whether to show TIFF as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "WEBP",
+          "name": "showWEBP",
+          "description": "Whether to show WEBP as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "SVG",
+          "name": "showSVG",
+          "description": "Whether to show SVG as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        }
+      ]
     },
     {
       "name": "resize",

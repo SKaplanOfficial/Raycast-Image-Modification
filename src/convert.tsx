@@ -12,6 +12,31 @@ import {
 import { execSync } from "child_process";
 import { convertPDF, convertSVG, getSelectedImages } from "./utils";
 
+interface CommandPreferences {
+  showASTC: boolean;
+  showBMP: boolean;
+  showDDS: boolean;
+  showEXR: boolean;
+  showGIF: boolean;
+  showHEIC: boolean;
+  showHEICS: boolean;
+  showICNS: boolean;
+  showICO: boolean;
+  showJPEG: boolean;
+  showJP2: boolean;
+  showKTX: boolean;
+  showPBM: boolean;
+  showPDF: boolean;
+  showPNG: boolean;
+  showPSD: boolean;
+  showPVR: boolean;
+  showTGA: boolean;
+  showTIFF: boolean;
+  showWEBP: boolean;
+  showSVG: boolean;
+  [key: string]: boolean;
+}
+
 const FORMATS = [
   "ASTC",
   "BMP",
@@ -37,6 +62,9 @@ const FORMATS = [
 ];
 
 export default function Command() {
+  const preferences = getPreferenceValues<CommandPreferences>();
+  const enabledFormats = FORMATS.filter((format) => preferences[`show${format}`]);
+
   const convert = async (desiredType: string) => {
     const selectedImages = await getSelectedImages();
 
@@ -111,7 +139,7 @@ export default function Command() {
           </ActionPanel>
         }
       />
-      {FORMATS.map((format) => {
+      {enabledFormats.map((format) => {
         return (
           <List.Item
             title={format}
