@@ -5,7 +5,7 @@
  * @author Stephen Kaplan <skaplanofficial@gmail.com>
  *
  * Created at     : 2023-07-06 11:45:04
- * Last modified  : 2023-07-06 15:49:03
+ * Last modified  : 2023-07-06 16:47:05
  */
 
 import os from "os";
@@ -70,18 +70,19 @@ export default function ImageGeneratorActionPanel(props: {
 
       <ActionPanel.Section title="Clipboard Actions">
         <Action.Paste
+          title="Paste Preview In Active App"
           shortcut={{ modifiers: ["cmd", "shift"], key: "v" }}
           content={{ html: `<img src="${preview}" />` }}
         />
         <Action.CopyToClipboard
           title="Copy Preview Image"
-          shortcut={{ modifiers: ["cmd"], key: "c" }}
+          shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
           content={{ html: `<img src="${preview}" />` }}
         />
         <Action.CopyToClipboard
           title="Copy Preview Data URL"
           content={preview}
-          shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+          shortcut={{ modifiers: ["cmd", "shift"], key: "u" }}
         />
       </ActionPanel.Section>
     </ActionPanel>

@@ -5,7 +5,7 @@
  * @author Stephen Kaplan <skaplanofficial@gmail.com>
  *
  * Created at     : 2023-07-06 11:54:14
- * Last modified  : 2023-07-06 15:48:26
+ * Last modified  : 2023-07-06 16:47:11
  */
 
 import { runAppleScript } from "run-applescript";
@@ -23,9 +23,9 @@ export const standardDimensions = [1024, 512, 256, 128, 100, 64, 50, 32];
  * @param width The width of the image.
  * @param height The height of the image.
  * @param destination The destination path for the image.
- * @returns A promise that resolves when the image has been generated and saved.
+ * @returns A promise that resolves when the image has been generated and saved. If no destination is specified, the promise resolves with the data URL of the generated image.
  */
-export const generatePlaceholder = async (width: number, height: number, destination: string) => {
+export const generatePlaceholder = async (width: number, height: number, destination?: string) => {
   return runAppleScript(`use framework "Foundation"
         use framework "Quartz"
         
@@ -37,7 +37,14 @@ export const generatePlaceholder = async (width: number, height: number, destina
         set theRep to current application's NSCIImageRep's imageRepWithCIImage:croppedOutput
         set theResult to current application's NSImage's alloc()'s initWithSize:(theRep's |size|())
         theResult's addRepresentation:theRep
-        saveImage(theResult, "${destination}")
+        ${
+          destination == undefined
+            ? `set theTIFFData to theResult's TIFFRepresentation()
+              set theBitmapImageRep to current application's NSBitmapImageRep's imageRepWithData:theTIFFData
+              set theResultData to theBitmapImageRep's representationUsingType:(current application's NSPNGFileType) |properties|:(missing value)
+              set theBase64String to theResultData's base64EncodedStringWithOptions:0
+              return "data:image/png;base64," & theBase64String`
+            : `saveImage(theResult, "${destination}")
         
         on saveImage(imageToSave, destinationPath)
             -- Saves an NSImage to the supplied file path
@@ -45,15 +52,16 @@ export const generatePlaceholder = async (width: number, height: number, destina
             set theBitmapImageRep to current application's NSBitmapImageRep's imageRepWithData:theTIFFData
             set theResultData to theBitmapImageRep's representationUsingType:(current application's NSPNGFileType) |properties|:(missing value)
             theResultData's writeToFile:destinationPath atomically:false
-        end saveImage`);
+        end saveImage`
+        }`);
 };
 
 /**
- * Generates a data URI of a preview image for the specified CIFilter.
+ * Generates a data URL of a preview image for the specified CIFilter.
  *
  * @param CIFilterName The name of the CIFilter to generate a preview for.
  * @param inputs The input key/value pairs for the CIFilter.
- * @returns A promise that resolves with the data URI of the generated preview.
+ * @returns A promise that resolves with the data URL of the generated preview.
  */
 export const generatePreview = async (CIFilterName: string, inputs: { [key: string]: unknown }) => {
   return runAppleScript(`use framework "Foundation"
