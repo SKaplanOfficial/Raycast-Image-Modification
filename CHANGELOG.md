@@ -2,7 +2,8 @@
 
 ## [Customization] - 2023-06-18
 
-- Added settings to individually show/hide image formats from the list of conversion formats
+- Added settings to individually show/hide image formats from the list of conversion formats (#7023)
+- Added setting for where to store image results (e.g. replace original, save in containing folder, copy to clipboard, open in preview, etc.) (#6593)
 
 ## [Optimize Images, SVG Conversion, More Filters] - 2023-04-03
 
@@ -12,19 +13,19 @@
 - Add ability to convert PDF to various other image types
 - Add ability to rotate and flip PDFs
 - Add 13 new filters:
-    - Circular Screen
-    - Circular Wrap
-    - CMYK Halftone
-    - Dither
-    - Document Enhancement
-    - Dot Screen
-    - Hatched Screen
-    - Kaleidoscope
-    - Line Screen
-    - Maximum Component
-    - Minimum Components
-    - Posterize
-    - Sharpen Luminance
+  - Circular Screen
+  - Circular Wrap
+  - CMYK Halftone
+  - Dither
+  - Document Enhancement
+  - Dot Screen
+  - Hatched Screen
+  - Kaleidoscope
+  - Line Screen
+  - Maximum Component
+  - Minimum Components
+  - Posterize
+  - Sharpen Luminance
 - Fix WebP operations failing due to insufficient permission
 
 ## [WebP Support] - 2023-03-29

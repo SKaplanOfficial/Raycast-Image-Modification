@@ -3,6 +3,21 @@
   "name": "sips",
   "title": "Image Modification",
   "description": "Rotate, flip, resize, and convert images using SIPS",
+  "keywords": [
+    "convert",
+    "edit",
+    "file",
+    "filter",
+    "flip",
+    "image",
+    "optimize",
+    "pad",
+    "placeholder",
+    "resize",
+    "rotate",
+    "sips"
+  ],
+  "version": "1.5.0",
   "icon": "command-icon.png",
   "author": "HelloImSteven",
   "contributors": [
@@ -16,22 +31,60 @@
   "license": "MIT",
   "preferences": [
     {
-      "name": "preferredFileManager",
-      "description": "The preferred file manager to obtain selected images from. Finder will always be used as a fallback.",
+      "title": "Image Input",
+      "name": "inputMethod",
+      "description": "Where to obtain the image to modify.",
       "type": "dropdown",
       "data": [
         {
-          "title": "Finder",
+          "title": "Selection In Finder",
           "value": "Finder"
         },
         {
-          "title": "Path Finder",
+          "title": "Selection In Path Finder",
           "value": "Path Finder"
+        },
+        {
+          "title": "Clipboard",
+          "value": "Clipboard"
         }
       ],
       "default": "Finder",
-      "required": false,
-      "title": "Preferred File Manager"
+      "required": false
+    },
+    {
+      "title": "Image Output",
+      "name": "imageResultHandling",
+      "description": "How to handle the result of the image modification, i.e. where to save the modified image, or whether to copy it to the clipboard.",
+      "type": "dropdown",
+      "data": [
+        {
+          "title": "Replace Original",
+          "value": "replaceOriginal"
+        },
+        {
+          "title": "Save In Containing Folder",
+          "value": "saveInContainingFolder"
+        },
+        {
+          "title": "Copy to Clipboard",
+          "value": "copyToClipboard"
+        },
+        {
+          "title": "Open in Preview",
+          "value": "openInPreview"
+        },
+        {
+          "title": "Save To Downloads",
+          "value": "saveToDownloads"
+        },
+        {
+          "title": "Save to Desktop",
+          "value": "saveToDesktop"
+        }
+      ],
+      "default": "replaceOriginal",
+      "required": false
     }
   ],
   "commands": [
@@ -54,10 +107,30 @@
       "mode": "no-view",
       "arguments": [
         {
-          "name": "degrees",
-          "placeholder": "Degrees",
+          "name": "angle",
+          "placeholder": "Angle",
           "type": "text",
           "required": true
+        }
+      ],
+      "preferences": [
+        {
+          "name": "rotationUnit",
+          "title": "Rotation Unit",
+          "description": "The unit of the angle to rotate selected images by",
+          "type": "dropdown",
+          "data": [
+            {
+              "title": "Degrees",
+              "value": "degrees"
+            },
+            {
+              "title": "Radians",
+              "value": "radians"
+            }
+          ],
+          "default": "degrees",
+          "required": false
         }
       ]
     },
@@ -73,7 +146,8 @@
           "name": "showASTC",
           "description": "Whether to show ASTC as a conversion option",
           "type": "checkbox",
-          "default": true
+          "default": true,
+          "required": false
         },
         {
           "label": "BMP",
@@ -289,6 +363,16 @@
           "type": "text",
           "required": false
         }
+      ],
+      "preferences": [
+        {
+          "name": "defaultPadColor",
+          "title": "Default Pad Color",
+          "description": "The default color to use when padding images",
+          "type": "textfield",
+          "default": "#FFFFFF",
+          "required": false
+        }
       ]
     },
     {
@@ -310,11 +394,18 @@
           "type": "text"
         }
       ]
+    },
+    {
+      "name": "create-image",
+      "title": "Create New Image",
+      "description": "Create a new image by specifying its dimensions, pattern, and format.",
+      "mode": "view"
     }
   ],
   "dependencies": {
     "@raycast/api": "^1.48.8",
     "@raycast/utils": "^1.4.18",
+    "mathjs": "^11.8.2",
     "run-applescript": "^6.1.0",
     "svgo": "^3.0.2"
   },
