@@ -1,6 +1,6 @@
 # Image Modification
 
-Rotate, flip, scale, resize, convert, and apply filters to selected images.
+Apply filters and transformations to various image formats, and convert between them. Create new images by specifying their dimensions, colors, and patterns. Operate on selected files or on images in the clipboard.
 
 ## Features
 
@@ -9,8 +9,9 @@ Rotate, flip, scale, resize, convert, and apply filters to selected images.
   - SVG conversion supported by [Potrace](https://potrace.sourceforge.net)
 - Rotate, flip, scale, resize, and pad images by applying SIPS commands
 - Apply filters and distortions such as Bokeh Blur, Noir, X-Ray, and more
-- Rotate and flip the pages of PDFs
+- Rotate, flip, and apply filters to the pages of PDFs
 - Optimize images using JPEG compression, [svgo](https://github.com/svg/svgo), and other strategies
+- Perform realtime image manipulation on images in the clipboard
 
 ## Commands
 
@@ -18,6 +19,8 @@ Rotate, flip, scale, resize, convert, and apply filters to selected images.
   - Apply various filters to the provided images using Apple's CIFilters
 - Convert Images
   - Convert selected images from their current format to another.
+- Create New Image
+  - Create a new image by selecting the dimensions, color, and pattern.
 - Flip Images Horizontally
   - Flip selected images horizontally.
 - Flip Images Vertically

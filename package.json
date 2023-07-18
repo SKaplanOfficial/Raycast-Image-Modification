@@ -2,7 +2,7 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "sips",
   "title": "Image Modification",
-  "description": "Rotate, flip, resize, and convert images using SIPS",
+  "description": "Apply filters and transformations to various image formats, and convert between them.",
   "keywords": [
     "convert",
     "edit",
@@ -398,7 +398,7 @@
     {
       "name": "create-image",
       "title": "Create New Image",
-      "description": "Create a new image by specifying its dimensions, pattern, and format.",
+      "description": "Create a new image by specifying its dimensions, color, and pattern.",
       "mode": "view"
     }
   ],

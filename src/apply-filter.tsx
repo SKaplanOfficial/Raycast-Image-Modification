@@ -11,9 +11,10 @@
 import { Action, ActionPanel, Grid, showToast, Toast } from "@raycast/api";
 
 import applyFilter from "./operations/filterOperation";
-import { filters } from "./utilities/filters";
+import { filters, getFilterThumbnail } from "./utilities/filters";
 import { Filter } from "./utilities/types";
 import { cleanup, getSelectedImages, showErrorToast } from "./utilities/utils";
+import { useState } from "react";
 
 export default function Command() {
   /**
@@ -42,19 +43,42 @@ export default function Command() {
     }
   };
 
-  const gridItems = filters.map((filter) => (
+  const [selectedFilter, setSelectedFilter] = useState<Filter>();
+  const [preview, setPreview] = useState<string>("");
+
+  const gridItems = filters.map((filter) => {
+    const isSelected = selectedFilter?.name === filter.name;
+    const itemContent = { source: isSelected ? (preview == "" ? filter.thumbnail : preview) : filter.thumbnail };
+    return (
     <Grid.Item
       title={filter.name}
+      id={filter.name}
       subtitle={filter.description}
       key={filter.name}
-      content={{ source: filter.thumbnail }}
+      content={itemContent}
       actions={
         <ActionPanel>
           <Action title={`Apply ${filter.name} Filter`} onAction={async () => await performFilter(filter)} />
         </ActionPanel>
       }
     />
-  ));
+  )});
 
-  return <Grid searchBarPlaceholder="Search filters...">{gridItems}</Grid>;
+  return <Grid
+    searchBarPlaceholder="Search filters..."
+    throttle={true}
+    onSelectionChange={async (id) => {
+      const filter = filters.find((filter) => filter.name === id);
+      if (filter && filter.name !== selectedFilter?.name) {
+        setPreview("");
+        setSelectedFilter(filter);
+        const selection = await getSelectedImages();
+        if (selection.length > 0 && selection[0].trim() !== "") {
+          const preview = getFilterThumbnail(filter, selection[0]);
+          setPreview(preview);
+        }
+        await cleanup();
+      }
+    }}
+  >{gridItems}</Grid>;
 }

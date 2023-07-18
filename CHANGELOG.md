@@ -1,9 +1,13 @@
 # Image Modification Changelog
 
-## [Customization] - 2023-06-18
+## [Create Images, In-Clipboard Modification] - 2023-07-06
 
 - Added settings to individually show/hide image formats from the list of conversion formats (#7023)
-- Added setting for where to store image results (e.g. replace original, save in containing folder, copy to clipboard, open in preview, etc.) (#6593)
+- Added settings for input source and output destination (e.g. clipboard, new file, replace original, etc.) (#6593)
+- Made all commands work as expected regardless of input/output settings (i.e. you can rotate an image in the clipboard and immediately open it in Preview) (#7296)
+- Added "Create Image" command to create image placeholders of various sizes, patterns, and colors
+- Improved error handling for all commands, including copyable error messages
+- Generally improved the code quality of the extension
 
 ## [Optimize Images, SVG Conversion, More Filters] - 2023-04-03
 
