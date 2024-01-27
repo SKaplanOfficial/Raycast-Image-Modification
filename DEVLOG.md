@@ -1,5 +1,12 @@
 # Image Modification DevLog - A more detailed changelog
 
+## 2024-01-27
+
+- Added logic for handling arm vs. x86 architectures for libwebp operations
+- Updated libwebp binaries
+- Improved selection detection when Finder/Path Finder is not the frontmost application
+- Fixed bug where converting from WebP to anything but PNG would change the file extension but not the file format
+
 ## 2023-07-06
 
 - Added 'Rotation Unit' setting for the Rotate Images command, supporting degrees and radians
