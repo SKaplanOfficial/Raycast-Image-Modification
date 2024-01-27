@@ -36,9 +36,30 @@ import { ExtensionPreferences } from "./preferences";
 const getSelectedFinderImages = async (): Promise<string> => {
   return runAppleScript(
     `set imageTypes to {"PNG", "JPG", "JPEG", "TIF", "HEIF", "GIF", "ICO", "ICNS", "ASTC", "BMP", "DDS", "EXR", "JP2", "KTX", "Portable Bitmap", "Adobe Photoshop", "PVR", "TGA", "WebP", "SVG", "PDF", "HEIC"}
-
+    
     tell application "Finder"
       set theSelection to selection
+
+      if theSelection is {} and (count Finder windows) > 0 then
+        repeat with i from 1 to (count Finder windows)
+          activate window i
+          set theSelection to selection
+
+          set selectionKinds to {}
+          repeat with j from 1 to (count theSelection)
+            set selectionKinds to selectionKinds & kind of (item j of theSelection)
+          end repeat
+
+          set containsImage to false
+          repeat with imageType in imageTypes
+            if selectionKinds contains imageType then
+              set containsImage to true
+              exit repeat
+            end if
+          end repeat
+        end repeat
+      end if
+
       if theSelection is {} then
         return
       else if (theSelection count) is equal to 1 then
@@ -75,6 +96,27 @@ const getSelectedPathFinderImages = async (): Promise<string> => {
 
     tell application "Path Finder"
       set theSelection to selection
+
+      if theSelection is {} and (count windows) > 0 then
+        repeat with i from 1 to (count windows)
+          activate window i
+          set theSelection to selection
+
+          set selectionKinds to {}
+          repeat with j from 1 to (count theSelection)
+            set selectionKinds to selectionKinds & kind of (item j of theSelection)
+          end repeat
+
+          set containsImage to false
+          repeat with imageType in imageTypes
+            if selectionKinds contains imageType then
+              set containsImage to true
+              exit repeat
+            end if
+          end repeat
+        end repeat
+      end if
+
       if theSelection is {} then
         return
       else if (theSelection count) is equal to 1 then
@@ -154,14 +196,16 @@ export const getSelectedImages = async (): Promise<string[]> => {
 
   // Attempt to get selected images from Path Finder
   try {
-    if (activeApp == "Path Finder" && inputMethod == "Path Finder") {
+    if (inputMethod == "Path Finder") {
       const pathFinderImages = (await getSelectedPathFinderImages()).split(", ");
       pathFinderImages.forEach((imgPath) => {
         if (!selectedImages.includes(imgPath)) {
           selectedImages.push(imgPath);
         }
       });
-      return selectedImages;
+      if (selectedImages.length > 0) {
+        return selectedImages;
+      }
     }
   } catch (error) {
     // Error getting images from Path Finder, fall back to Finder
