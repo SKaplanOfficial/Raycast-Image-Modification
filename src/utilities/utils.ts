@@ -236,10 +236,36 @@ export const execSIPSCommandOnWebP = async (command: string, webpPath: string): 
     iter++;
   }
 
-  execSync(`chmod +x ${environment.assetsPath}/webp/dwebp`);
-  execSync(`chmod +x ${environment.assetsPath}/webp/cwebp`);
+  const cpuType = os.cpus()[0].model.includes("Apple") ? "arm" : "x86";
+
+  if (cpuType == "arm") {
+    // Make sure the arm binaries are executable
+    execSync(`chmod +x ${environment.assetsPath}/webp/arm/dwebp`);
+    execSync(`chmod +x ${environment.assetsPath}/webp/arm/cwebp`);
+
+    // Remove x86 binaries if they exist
+    if (fs.existsSync(`${environment.assetsPath}/webp/x86/dwebp`)) {
+      fs.promises.rm(`rm ${environment.assetsPath}/webp/x86/dwebp`);
+    }
+    if (fs.existsSync(`${environment.assetsPath}/webp/x86/cwebp`)) {
+      fs.promises.rm(`rm ${environment.assetsPath}/webp/x86/cwebp`);
+    }
+  } else {
+    // Make sure the x86 binaries are executable
+    execSync(`chmod +x ${environment.assetsPath}/webp/x86/dwebp`);
+    execSync(`chmod +x ${environment.assetsPath}/webp/x86/cwebp`);
+
+    // Remove arm binaries if they exist
+    if (fs.existsSync(`${environment.assetsPath}/webp/arm/dwebp`)) {
+      fs.promises.rm(`rm ${environment.assetsPath}/webp/arm/dwebp`);
+    }
+    if (fs.existsSync(`${environment.assetsPath}/webp/arm/cwebp`)) {
+      fs.promises.rm(`rm ${environment.assetsPath}/webp/arm/cwebp`);
+    }
+  }
+
   execSync(
-    `${environment.assetsPath}/webp/dwebp "${webpPath}" -o "${tmpPath}" && ${command} "${tmpPath}" && ${environment.assetsPath}/webp/cwebp "${tmpPath}" -o "${newPath}" ; rm "${tmpPath}"`
+    `${environment.assetsPath}/webp/${cpuType}/dwebp "${webpPath}" -o "${tmpPath}" && ${command} "${tmpPath}" && ${environment.assetsPath}/webp/${cpuType}/cwebp "${tmpPath}" -o "${newPath}" ; rm "${tmpPath}"`
   );
   return newPath;
 };
