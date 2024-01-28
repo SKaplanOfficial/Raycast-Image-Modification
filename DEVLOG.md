@@ -1,5 +1,11 @@
 # Image Modification DevLog - A more detailed changelog
 
+## 2024-01-28
+
+- Added "Strip EXIF Data" command
+- Added ability to install ExifTool (for stripping EXIF data)
+- Fixed bug which caused an error when padding a webp image but still padded the image correctly
+
 ## 2024-01-27
 
 - Added logic for handling arm vs. x86 architectures for libwebp operations

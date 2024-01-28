@@ -41,5 +41,5 @@ export default async function Command(props: { arguments: { amount: string; hexc
     inProgressMessage: "Padding in progress...",
     successMessage: "Padded",
     failureMessage: "Failed to pad",
-  })
+  });
 }

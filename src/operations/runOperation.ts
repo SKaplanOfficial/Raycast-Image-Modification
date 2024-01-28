@@ -4,17 +4,17 @@
  * @summary Runs an operation on the selected images.
  * @author Stephen Kaplan <skaplanofficial@gmail.com>
  *
- * Created at     : 2023-07-18 18:45:28 
+ * Created at     : 2023-07-18 18:45:28
  * Last modified  : 2023-07-18 18:46:08
  */
 
-import { showToast, Toast } from '@raycast/api';
+import { showToast, Toast } from "@raycast/api";
 
-import { cleanup, showErrorToast } from '../utilities/utils';
+import { cleanup, showErrorToast } from "../utilities/utils";
 
 /**
  * Runs an operation on the selected images, displaying a toast while the operation is in progress.
- * 
+ *
  * @param params.operation The operation to run.
  * @param params.selectedImages The paths of the selected images.
  * @param params.inProgressMessage The message to display while the operation is in progress.
@@ -38,10 +38,14 @@ export default async function runOperation(params: {
   const pluralized = `image${params.selectedImages.length === 1 ? "" : "s"}`;
   try {
     await params.operation();
-    toast.title = `${params.successMessage} ${params.selectedImages.length.toString()} ${pluralized}`
+    toast.title = `${params.successMessage} ${params.selectedImages.length.toString()} ${pluralized}`;
     toast.style = Toast.Style.Success;
   } catch (error) {
-    await showErrorToast(`${params.failureMessage} ${params.selectedImages.length.toString()} ${pluralized}`, error as Error, toast);
+    await showErrorToast(
+      `${params.failureMessage} ${params.selectedImages.length.toString()} ${pluralized}`,
+      error as Error,
+      toast
+    );
   } finally {
     await cleanup();
   }

@@ -400,6 +400,17 @@
       "title": "Create New Image",
       "description": "Create a new image by specifying its dimensions, color, and pattern.",
       "mode": "view"
+    },
+    {
+      "name": "strip-exif",
+      "title": "Strip EXIF Data",
+      "description": "Remove EXIF data from images",
+      "keywords": [
+        "exif",
+        "metadata",
+        "remove"
+      ],
+      "mode": "no-view"
     }
   ],
   "dependencies": {
@@ -407,11 +418,13 @@
     "@raycast/utils": "^1.4.18",
     "mathjs": "^11.8.2",
     "run-applescript": "^6.1.0",
-    "svgo": "^3.0.2"
+    "svgo": "^3.0.2",
+    "tar": "^6.2.0"
   },
   "devDependencies": {
     "@types/node": "18.8.3",
     "@types/react": "18.0.9",
+    "@types/tar": "^6.1.11",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^7.32.0",

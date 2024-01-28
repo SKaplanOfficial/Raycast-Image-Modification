@@ -106,7 +106,7 @@ export const getFilterThumbnail = (filter: Filter, source: string) => {
   end saveImage
   
   return res`);
-}
+};
 
 /**
  * The concluding part of the ASObjC script that applies a filter to an image. Joins all the parts of the script together and runs it.
