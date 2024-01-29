@@ -2,13 +2,15 @@ import { execSync } from "child_process";
 import * as https from "https";
 import * as tar from "tar";
 import * as fs from "fs";
+import * as crypto from "crypto";
 
-import { confirmAlert, environment, LocalStorage, open, showToast, Toast } from "@raycast/api";
+import { confirmAlert, environment, LocalStorage, showToast, Toast } from "@raycast/api";
 
 import runOperation from "./operations/runOperation";
 import stripEXIF from "./operations/stripEXIFOperation";
 import { ExifToolLocation } from "./utilities/enums";
 import { getSelectedImages } from "./utilities/utils";
+import path from "path";
 
 /**
  * Prompts the user to install ExifTool. If the user accepts, ExifTool is installed to the support directory.
@@ -24,20 +26,56 @@ async function installExifTool() {
       },
     })
   ) {
+    const toast = await showToast({
+      title: "Installing ExifTool...",
+      style: Toast.Style.Animated,
+    });
+
     const supportPath = environment.supportPath;
     const tarURL = "https://exiftool.org/Image-ExifTool-12.74.tar.gz";
-    open(supportPath);
+    const checksum = "aedb28b1427c53205ab261fa31ff3feda73e7f17a0c181453651680e5666c48a";
 
     let waiting = true;
     https.get(tarURL, async (response) => {
-      response.pipe(tar.x({ cwd: supportPath }));
-      await LocalStorage.setItem("exifToolLocation", ExifToolLocation.SUPPORT_DIR);
-      waiting = false;
+      const tarName = "Image-ExifTool-12.74.tar.gz";
+      const tarPath = path.join(supportPath, tarName);
+      const file = fs.createWriteStream(tarPath);
+      response.pipe(file);
+
+      // Checksum verification
+      let valid = false;
+      const hash = crypto.createHash("sha256");
+      response.on("data", (data) => hash.update(data));
+      response.on("end", async () => {
+        const hex = hash.digest("hex");
+        if (hex !== checksum) {
+          toast.title = "Checksum verification failed";
+          toast.style = Toast.Style.Failure;
+          waiting = false;
+          return;
+        }
+        valid = true;
+      });
+
+      file.on("finish", async () => {
+        file.close();
+        if (valid) {
+          // Extract the tarball
+          await tar.x({ file: `${supportPath}/Image-ExifTool-12.74.tar.gz`, cwd: supportPath });
+          await LocalStorage.setItem("exifToolLocation", ExifToolLocation.SUPPORT_DIR);
+          waiting = false;
+        }
+        await fs.promises.unlink(tarPath);
+        toast.title = "Done!";
+        toast.style = Toast.Style.Success;
+      });
     });
 
     while (waiting) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+  } else {
+    await LocalStorage.removeItem("exifToolLocation");
   }
 }
 
@@ -62,8 +100,9 @@ async function setExifToolLocation() {
 async function getExifToolLocation() {
   const initialLocation = await LocalStorage.getItem("exifToolLocation");
   if (
-    (initialLocation !== ExifToolLocation.ON_PATH && initialLocation !== ExifToolLocation.SUPPORT_DIR) ||
-    !fs.existsSync(`${environment.supportPath}/Image-ExifTool-12.74/exiftool`)
+    initialLocation !== ExifToolLocation.ON_PATH &&
+    (initialLocation !== ExifToolLocation.SUPPORT_DIR ||
+      !fs.existsSync(`${environment.supportPath}/Image-ExifTool-12.74/exiftool`))
   ) {
     await setExifToolLocation();
   }

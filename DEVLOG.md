@@ -4,6 +4,7 @@
 
 - Added "Strip EXIF Data" command
 - Added ability to install ExifTool (for stripping EXIF data)
+- Added checksum verification for ExifTool download
 - Fixed bug which caused an error when padding a webp image but still padded the image correctly
 
 ## 2024-01-27

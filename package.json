@@ -17,7 +17,7 @@
     "rotate",
     "sips"
   ],
-  "version": "1.6.0",
+  "version": "1.7.0",
   "icon": "command-icon.png",
   "author": "HelloImSteven",
   "contributors": [
@@ -92,13 +92,20 @@
       "name": "flip-horizontally",
       "title": "Flip Images Horizontally",
       "description": "Flip the selected images horizontally",
-      "mode": "no-view"
+      "mode": "no-view",
+      "keywords": [
+        "reverse",
+        "mirror"
+      ]
     },
     {
       "name": "flip-vertically",
       "title": "Flip Images Vertically",
       "description": "Flip the selected images vertically",
-      "mode": "no-view"
+      "mode": "no-view",
+      "keywords": [
+        "mirror"
+      ]
     },
     {
       "name": "rotate",
@@ -132,6 +139,9 @@
           "default": "degrees",
           "required": false
         }
+      ],
+      "keywords": [
+        "turn"
       ]
     },
     {
@@ -309,6 +319,10 @@
           "default": true,
           "required": false
         }
+      ],
+      "keywords": [
+        "change",
+        "transform"
       ]
     },
     {
@@ -343,6 +357,12 @@
           "type": "text",
           "required": true
         }
+      ],
+      "keywords": [
+        "rescale",
+        "enlarge",
+        "shrink",
+        "size"
       ]
     },
     {
@@ -373,13 +393,21 @@
           "default": "#FFFFFF",
           "required": false
         }
+      ],
+      "keywords": [
+        "border",
+        "outline"
       ]
     },
     {
       "name": "apply-filter",
       "title": "Apply Image Filter",
       "description": "Apply filters to images using Apple's CIFilters",
-      "mode": "view"
+      "mode": "view",
+      "keywords": [
+        "effect",
+        "style"
+      ]
     },
     {
       "name": "optimize",

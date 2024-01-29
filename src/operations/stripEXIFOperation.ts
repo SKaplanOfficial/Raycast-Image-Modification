@@ -35,6 +35,11 @@ export default async function stripEXIF(sourcePaths: string[], exifToolLocation:
       ? "exiftool"
       : `"${environment.supportPath}/Image-ExifTool-12.74/exiftool"`;
 
+  // Make sure ExifTool is executable
+  if (exifToolLocation === ExifToolLocation.SUPPORT_DIR) {
+    execSync(`chmod +x "${environment.supportPath}/Image-ExifTool-12.74/exiftool"`);
+  }
+
   for (const imagePath of sourcePaths) {
     if (imagePath.toLowerCase().endsWith(".webp")) {
       // Convert to PNG, remove EXIF, then restore to WebP
