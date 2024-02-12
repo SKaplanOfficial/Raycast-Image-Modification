@@ -58,8 +58,8 @@ export default async function convert(sourcePaths: string[], desiredType: string
       // Input Format -> WebP
       // detect platform is arm or x86
       const platform = os.arch() === "arm64" ? "/arm" : "/x86";
-      execSync(`chmod +x ${environment.assetsPath}/webp/${platform}/cwebp`);
-      execSync(`${environment.assetsPath}/webp/${platform}/cwebp ${preferences?.cwebpLossless ? '-lossless' : ''} "${item}" -o "${newPath}"`);
+      execSync(`chmod +x ${environment.assetsPath}/webp${platform}/cwebp`);
+      execSync(`${environment.assetsPath}/webp${platform}/cwebp ${preferences?.cwebpLossless ? '-lossless' : ''} "${item}" -o "${newPath}"`);
     } else if (pathComponents.at(-1)?.toLowerCase() == "svg") {
       // SVG -> NSBitmapImageRep -> Desired Format
       convertSVG(desiredType, item, newPath);
