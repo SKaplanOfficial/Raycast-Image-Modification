@@ -12,6 +12,7 @@ import { execSync } from "child_process";
 import path from "path";
 
 import {
+  execSIPSCommandOnAVIF,
   execSIPSCommandOnSVG,
   execSIPSCommandOnWebP,
   getDestinationPaths,
@@ -30,7 +31,11 @@ export default async function resize(sourcePaths: string[], width: number, heigh
   const pathStrings = '"' + sourcePaths.join('" "') + '"';
   const newPaths = getDestinationPaths(sourcePaths);
 
-  if (pathStrings.toLocaleLowerCase().includes("webp") || pathStrings.toLocaleLowerCase().includes("svg")) {
+  if (
+    pathStrings.toLocaleLowerCase().includes("webp") ||
+    pathStrings.toLocaleLowerCase().includes("svg") ||
+    pathStrings.toLocaleLowerCase().includes("avif")
+  ) {
     // Special formats in selection -- Handle each image individually
     const resultPaths = [];
     for (const imgPath of sourcePaths) {
@@ -51,6 +56,15 @@ export default async function resize(sourcePaths: string[], width: number, heigh
           resultPaths.push(await execSIPSCommandOnSVG(`sips --resampleHeight ${height}`, imgPath));
         } else {
           resultPaths.push(await execSIPSCommandOnSVG(`sips --resampleHeightWidth ${height} ${width}`, imgPath));
+        }
+      } else if (imgPath.toLowerCase().endsWith(".avif")) {
+        // Convert to PNG, resize, and restore to AVIF
+        if (width != -1 && height == -1) {
+          resultPaths.push(await execSIPSCommandOnAVIF(`sips --resampleWidth ${width}`, imgPath));
+        } else if (width == -1 && height != -1) {
+          resultPaths.push(await execSIPSCommandOnAVIF(`sips --resampleHeight ${height}`, imgPath));
+        } else {
+          resultPaths.push(await execSIPSCommandOnAVIF(`sips --resampleHeightWidth ${height} ${width}`, imgPath));
         }
       } else {
         // Image is not a special format, so just rotate it using SIPS

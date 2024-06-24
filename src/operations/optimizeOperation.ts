@@ -10,16 +10,14 @@
 
 import { execSync } from "child_process";
 import * as fs from "fs";
-import * as os from "os";
 import path from "path";
 import { runAppleScriptSync } from "run-applescript";
 import { optimize as svgoOptimize } from "svgo";
 
-import { environment, getPreferenceValues } from "@raycast/api";
+import { environment } from "@raycast/api";
 
 import { getDestinationPaths, getWebPBinaryPath, moveImageResultsToFinalDestination } from "../utilities/utils";
-import { ExtensionPreferences } from "../utilities/preferences";
-import { ImageResultHandling } from "../utilities/enums";
+import { getAVIFEncPaths } from "../utilities/avif";
 
 /**
  * Optimizes a JPEG image by applying lossy compression.
@@ -54,29 +52,10 @@ const optimizeJPEG = (jpegPath: string, newPath: string, amount: number) => {
  * @returns The path of the optimized WebP image.
  */
 const optimizeWEBP = async (webpPath: string, amount: number) => {
-  const preferences = getPreferenceValues<ExtensionPreferences>();
   const jpegPath = `${environment.supportPath}/tmp.jpeg`;
 
-  let newPath = webpPath.substring(0, webpPath.toLowerCase().lastIndexOf(".webp")) + " (Optimized).webp";
-  if (preferences.imageResultHandling == ImageResultHandling.SaveToDownloads) {
-    newPath = path.join(os.homedir(), "Downloads", path.basename(newPath));
-  } else if (preferences.imageResultHandling == ImageResultHandling.SaveToDesktop) {
-    newPath = path.join(os.homedir(), "Desktop", path.basename(newPath));
-  } else if (
-    preferences.imageResultHandling == ImageResultHandling.CopyToClipboard ||
-    preferences.imageResultHandling == ImageResultHandling.OpenInPreview
-  ) {
-    newPath = path.join(os.tmpdir(), path.basename(newPath));
-  }
-
-  let iter = 2;
-  while (fs.existsSync(newPath) && os.tmpdir() != path.dirname(newPath)) {
-    newPath = path.join(
-      path.dirname(newPath),
-      path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`
-    );
-    iter++;
-  }
+  let newPath = getDestinationPaths([webpPath])[0];
+  newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).webp");
 
   execSync(`chmod +x ${environment.assetsPath}/webp/cwebp`);
   execSync(`chmod +x ${environment.assetsPath}/webp/dwebp`);
@@ -96,28 +75,8 @@ const optimizeWEBP = async (webpPath: string, amount: number) => {
  * @returns The path of the optimized SVG image.
  */
 const optimizeSVG = (svgPath: string) => {
-  const preferences = getPreferenceValues<ExtensionPreferences>();
-
-  let newPath = svgPath.substring(0, svgPath.toLowerCase().lastIndexOf(".svg")) + " (Optimized).svg";
-  if (preferences.imageResultHandling == ImageResultHandling.SaveToDownloads) {
-    newPath = path.join(os.homedir(), "Downloads", path.basename(newPath));
-  } else if (preferences.imageResultHandling == ImageResultHandling.SaveToDesktop) {
-    newPath = path.join(os.homedir(), "Desktop", path.basename(newPath));
-  } else if (
-    preferences.imageResultHandling == ImageResultHandling.CopyToClipboard ||
-    preferences.imageResultHandling == ImageResultHandling.OpenInPreview
-  ) {
-    newPath = path.join(os.tmpdir(), path.basename(newPath));
-  }
-
-  let iter = 2;
-  while (fs.existsSync(newPath) && os.tmpdir() != path.dirname(newPath)) {
-    newPath = path.join(
-      path.dirname(newPath),
-      path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`
-    );
-    iter++;
-  }
+  let newPath = getDestinationPaths([svgPath])[0];
+  newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).svg");
 
   const data = fs.readFileSync(svgPath);
   const result = svgoOptimize(data.toString(), {
@@ -152,11 +111,23 @@ export default async function optimize(sourcePaths: string[], amount: number) {
       newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).jpeg");
       resultPaths.push(newPath);
       optimizeJPEG(imgPath, newPath, amount);
+    } else if (imgPath.toLowerCase().endsWith("avif")) {
+      // Optimize AVIF images using avifenc
+      const { encoderPath, decoderPath } = await getAVIFEncPaths();
+
+      // Convert to JPEG
+      const jpegPath = `${environment.supportPath}/tmp.jpeg`;
+      execSync(`${decoderPath} -q ${amount} "${imgPath}" "${jpegPath}"`);
+
+      // Convert back to AVIF
+      let newPath = newPaths[sourcePaths.indexOf(imgPath)];
+      newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).avif");
+      resultPaths.push(newPath);
+      execSync(`${encoderPath} "${jpegPath}" "${newPath}"`);
     } else {
       // Optimize any other SIPS-compatible image type
       const jpegPath = `${environment.supportPath}/tmp.jpeg`;
       let newPath = newPaths[sourcePaths.indexOf(imgPath)];
-      resultPaths.push(newPath);
       newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).jpeg");
       resultPaths.push(newPath);
 

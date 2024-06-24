@@ -46,7 +46,7 @@ export default function ImageGeneratorActionPanel(props: {
         onAction={async () => {
           const destinations = getDestinationPaths(
             [path.join(os.tmpdir(), `${objectType.replaceAll(" ", "_").toLowerCase()}.png`)],
-            true
+            true,
           );
           const toast = await showToast({ title: `Creating ${objectType}...`, style: Toast.Style.Animated });
           try {

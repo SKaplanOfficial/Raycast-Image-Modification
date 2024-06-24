@@ -1,5 +1,18 @@
 # Image Modification DevLog - A more detailed changelog
 
+## 2024-06-24
+
+- Added support for NeoFinder, HoudahSpot
+- Added support for AVIF images
+- Added support for several new conversions: PDF->SVG, PDF->WebP, SVG->PDF, SVG->WebP
+- Added an alert for when automation permissions have not been granted
+- Operations will now look at alternative file managers first if they are the active app, regardless of the preference setting
+
+## 2024-06-23
+
+- Fixed PDF->JPEG conversion not actually using JPEG as the output format
+- Fixed images not getting saved to the correct location when using the clipboard as the image source
+
 ## 2024-01-28
 
 - Added "Strip EXIF Data" command

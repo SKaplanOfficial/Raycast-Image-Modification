@@ -20,13 +20,15 @@ import {
   getFrontmostApplication,
   getPreferenceValues,
   LocalStorage,
+  showInFinder,
   showToast,
   Toast,
 } from "@raycast/api";
 
-import { Direction, ImageResultHandling } from "./enums";
+import { Direction, ImageInputSource, ImageResultHandling } from "./enums";
 import { copyImagesAtPathsToClipboard, getClipboardImages } from "./clipboard";
 import { ExtensionPreferences } from "./preferences";
+import { getAVIFEncPaths } from "./avif";
 
 /**
  * Gets currently selected images in Finder.
@@ -35,53 +37,60 @@ import { ExtensionPreferences } from "./preferences";
  */
 const getSelectedFinderImages = async (): Promise<string> => {
   return runAppleScript(
-    `set imageTypes to {"PNG", "JPG", "JPEG", "TIF", "HEIF", "GIF", "ICO", "ICNS", "ASTC", "BMP", "DDS", "EXR", "JP2", "KTX", "Portable Bitmap", "Adobe Photoshop", "PVR", "TGA", "WebP", "SVG", "PDF", "HEIC"}
+    `set imageTypes to {"PNG", "JPG", "JPEG", "TIF", "HEIF", "GIF", "ICO", "ICNS", "ASTC", "BMP", "DDS", "EXR", "JP2", "KTX", "Portable Bitmap", "Adobe Photoshop", "PVR", "TGA", "WebP", "SVG", "PDF", "HEIC", "AV1 Image File Format"}
     
-    tell application "Finder"
-      set theSelection to selection
+    try
+      tell application "Finder"
+        set theSelection to selection
 
-      if theSelection is {} and (count Finder windows) > 0 then
-        repeat with i from 1 to (count Finder windows)
-          activate window i
-          set theSelection to selection
+        if theSelection is {} and (count Finder windows) > 0 then
+          repeat with i from 1 to (count Finder windows)
+            activate window i
+            set theSelection to selection
 
-          set selectionKinds to {}
-          repeat with j from 1 to (count theSelection)
-            set selectionKinds to selectionKinds & kind of (item j of theSelection)
+            set selectionKinds to {}
+            repeat with j from 1 to (count theSelection)
+              set selectionKinds to selectionKinds & kind of (item j of theSelection)
+            end repeat
+
+            set containsImage to false
+            repeat with imageType in imageTypes
+              if selectionKinds contains imageType then
+                set containsImage to true
+                exit repeat
+              end if
+            end repeat
           end repeat
+        end if
 
-          set containsImage to false
+        if theSelection is {} then
+          return
+        else if (theSelection count) is equal to 1 then
           repeat with imageType in imageTypes
-            if selectionKinds contains imageType then
-              set containsImage to true
+            if (kind of the first item of theSelection) contains imageType then
+              return the POSIX path of (theSelection as alias)
               exit repeat
             end if
           end repeat
-        end repeat
-      end if
-
-      if theSelection is {} then
-        return
-      else if (theSelection count) is equal to 1 then
-        repeat with imageType in imageTypes
-          if (kind of the first item of theSelection) contains imageType then
-            return the POSIX path of (theSelection as alias)
-            exit repeat
-          end if
-        end repeat
-      else
-        set thePaths to {}
-        repeat with i from 1 to (theSelection count)
-          repeat with imageType in imageTypes
-            if (kind of (item i of theSelection)) contains imageType then
-              copy (POSIX path of (item i of theSelection as alias)) to end of thePaths
-              exit repeat
-            end if
+        else
+          set thePaths to {}
+          repeat with i from 1 to (theSelection count)
+            repeat with imageType in imageTypes
+              if (kind of (item i of theSelection)) contains imageType then
+                copy (POSIX path of (item i of theSelection as alias)) to end of thePaths
+                exit repeat
+              end if
+            end repeat
           end repeat
-        end repeat
-        return thePaths
+          return thePaths
+        end if
+      end tell
+    on error message number -1743
+      set btn to button returned of (display alert "Permission Needed" message "To use Image Modification on selected images in Finder, you must allow Raycast to control Finder in System Settings > Privacy & Security > Automation." buttons {"Dismiss", "Open Privacy Settings"})
+      if btn is "Open Privacy Settings" then
+        open location "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
       end if
-    end tell`
+    end try`,
   );
 };
 
@@ -92,54 +101,186 @@ const getSelectedFinderImages = async (): Promise<string> => {
  */
 const getSelectedPathFinderImages = async (): Promise<string> => {
   return runAppleScript(
-    `set imageTypes to {"PNG", "JPG", "JPEG", "TIF", "HEIF", "GIF", "ICO", "ICNS", "ASTC", "BMP", "DDS", "EXR", "JP2", "KTX", "Portable Bitmap", "Adobe Photoshop", "PVR", "TGA", "WebP", "SVG", "PDF", "HEIC"}
+    `set imageTypes to {"PNG", "JPG", "JPEG", "TIF", "HEIF", "GIF", "ICO", "ICNS", "ASTC", "BMP", "DDS", "EXR", "JP2", "KTX", "Portable Bitmap", "Adobe Photoshop", "PVR", "TGA", "WebP", "SVG", "PDF", "HEIC", "AV1 Image File Format"}
 
-    tell application "Path Finder"
-      set theSelection to selection
+    try
+      tell application "Path Finder"
+        set theSelection to selection
 
-      if theSelection is {} and (count windows) > 0 then
-        repeat with i from 1 to (count windows)
-          activate window i
-          set theSelection to selection
+        if theSelection is {} and (count windows) > 0 then
+          repeat with i from 1 to (count windows)
+            activate window i
+            set theSelection to selection
 
-          set selectionKinds to {}
-          repeat with j from 1 to (count theSelection)
-            set selectionKinds to selectionKinds & kind of (item j of theSelection)
+            set selectionKinds to {}
+            repeat with j from 1 to (count theSelection)
+              set selectionKinds to selectionKinds & kind of (item j of theSelection)
+            end repeat
+
+            set containsImage to false
+            repeat with imageType in imageTypes
+              if selectionKinds contains imageType then
+                set containsImage to true
+                exit repeat
+              end if
+            end repeat
           end repeat
+        end if
 
-          set containsImage to false
+        if theSelection is {} then
+          return
+        else if (theSelection count) is equal to 1 then
           repeat with imageType in imageTypes
-            if selectionKinds contains imageType then
-              set containsImage to true
+            if (kind of the first item of theSelection) contains imageType then
+              return the POSIX path of first item of theSelection
               exit repeat
             end if
           end repeat
-        end repeat
+        else
+          set thePaths to {}
+          repeat with i from 1 to (theSelection count)
+            repeat with imageType in imageTypes
+              if (kind of (item i of theSelection)) contains imageType then
+                copy (POSIX path of (item i of theSelection)) to end of thePaths
+                exit repeat
+              end if
+            end repeat
+          end repeat
+          return thePaths
+        end if
+      end tell
+    on error message number -1743
+      set btn to button returned of (display alert "Permission Needed" message "To use Image Modification on selected images in Path Finder, you must allow Raycast to control Path Finder in System Settings > Privacy & Security > Automation." buttons {"Dismiss", "Open Privacy Settings"})
+      if btn is "Open Privacy Settings" then
+        open location "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
       end if
+    end try`,
+  );
+};
 
-      if theSelection is {} then
-        return
-      else if (theSelection count) is equal to 1 then
-        repeat with imageType in imageTypes
-          if (kind of the first item of theSelection) contains imageType then
-            return the POSIX path of first item of theSelection
+/**
+ * Gets currently selected images in NeoFinder.
+ *
+ * @returns A promise resolving to the comma-separated list of images as a string.
+ */
+const getSelectedNeoFinderImages = async (): Promise<string> => {
+  return runAppleScript(
+    `set imageTypes to {"PNG", "JPG", "JPEG", "TIF", "HEIF", "GIF", "ICO", "ICNS", "ASTC", "BMP", "DDS", "EXR", "JP2", "KTX", "Portable Bitmap", "Adobe Photoshop", "PVR", "TGA", "WebP", "SVG", "PDF", "HEIC", "AV1 Image File Format"}
+
+    try
+      tell application "NeoFinder"
+        set theSelection to a reference to selected items
+        if theSelection is {} and (count windows) > 0 then
+          repeat with i from 1 to (count windows)
+            activate window i
+            set theSelection to selection
+            
+            set selectionKinds to {}
+            repeat with j from 1 to (count theSelection)
+              set selectionKinds to selectionKinds & kind of (item j of theSelection)
+            end repeat
+            
+            set containsImage to false
+            repeat with imageType in imageTypes
+              if selectionKinds contains imageType then
+                set containsImage to true
+                exit repeat
+              end if
+            end repeat
+          end repeat
+        end if
+        
+        if theSelection is {} then
+          return
+        else if (theSelection count) is equal to 1 then
+          repeat with imageType in imageTypes
+            if (kind of the first item of theSelection) contains imageType then
+              if (finder path of theSelection) is not missing value then
+                return the finder path of theSelection
+                exit repeat
+              end if
+            end if
+          end repeat
+        else
+          set thePaths to {}
+          repeat with i from 1 to (theSelection count)
+            repeat with imageType in imageTypes
+              if (kind of (item i of theSelection)) contains imageType then
+                if (finder path of item i of theSelection) is not missing value then
+                  copy (finder path of item i of theSelection) to end of thePaths
+                  exit repeat
+                end if
+              end if
+            end repeat
+          end repeat
+          return thePaths
+        end if
+      end tell
+    on error message number -1743
+      set btn to button returned of (display alert "Permission Needed" message "To use Image Modification on selected images in NeoFinder, you must allow Raycast to control NeoFinder in System Settings > Privacy & Security > Automation." buttons {"Dismiss", "Open Privacy Settings"})
+      if btn is "Open Privacy Settings" then
+        open location "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
+      end if
+    end try`,
+  );
+};
+
+/**
+ * Gets currently selected images in HoudahSpot.
+ *
+ * @returns A promise resolving to the comma-separated list of images as a string.
+ */
+const getSelectedHoudahSpotImages = async (): Promise<string> => {
+  return runAppleScript(`
+    set imageTypes to {"PNG", "JPG", "JPEG", "TIF", "HEIF", "GIF", "ICO", "ICNS", "ASTC", "BMP", "DDS", "EXR", "JP2", "KTX", "PBM", "PSD", "PVR", "TGA", "WebP", "SVG", "PDF", "HEIC", "HEICS", "AVIF"}
+
+    try
+      tell application "HoudahSpot"
+        set theSelection to {}
+
+        repeat with theWindow in windows
+          set theSelection to selection of document of theWindow
+          if length of theSelection > 0 then
             exit repeat
           end if
         end repeat
-      else
-        set thePaths to {}
-        repeat with i from 1 to (theSelection count)
+
+        if theSelection is {} then
+          return
+        else if (theSelection count) is equal to 1 then
           repeat with imageType in imageTypes
-            if (kind of (item i of theSelection)) contains imageType then
-              copy (POSIX path of (item i of theSelection)) to end of thePaths
-              exit repeat
-            end if
+            ignoring case
+              if (name of the first item of theSelection) contains imageType then
+                if (path of item 1 of theSelection) is not missing value then
+                  return the path of item 1 of theSelection
+                  exit repeat
+                end if
+              end if
+            end ignoring
           end repeat
-        end repeat
-        return thePaths
+        else
+          set thePaths to {}
+          repeat with i from 1 to (theSelection count)
+            repeat with imageType in imageTypes
+              ignoring case
+                if (name of (item i of theSelection)) contains imageType then
+                  if (path of item i of theSelection) is not missing value then
+                    copy (path of item i of theSelection) to end of thePaths
+                    exit repeat
+                  end if
+                end if
+              end ignoring
+            end repeat
+          end repeat
+          return thePaths
+        end if
+      end tell
+    on error message number -1743
+      set btn to button returned of (display alert "Permission Needed" message "To use Image Modification on selected images in HoudahSpot, you must allow Raycast to control HoudahSpot in System Settings > Privacy & Security > Automation." buttons {"Dismiss", "Open Privacy Settings"})
+      if btn is "Open Privacy Settings" then
+        open location "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
       end if
-    end tell`
-  );
+    end try`);
 };
 
 /**
@@ -196,7 +337,7 @@ export const getSelectedImages = async (): Promise<string[]> => {
 
   // Attempt to get selected images from Path Finder
   try {
-    if (inputMethod == "Path Finder") {
+    if (inputMethod == ImageInputSource.PathFinderSelection || activeApp == "Path Finder") {
       const pathFinderImages = (await getSelectedPathFinderImages()).split(", ");
       pathFinderImages.forEach((imgPath) => {
         if (!selectedImages.includes(imgPath)) {
@@ -210,6 +351,44 @@ export const getSelectedImages = async (): Promise<string[]> => {
   } catch (error) {
     // Error getting images from Path Finder, fall back to Finder
     console.error("Couldn't get images from Path Finder");
+    inputMethodError = true;
+  }
+
+  // Attempt to get selected images from NeoFinder
+  try {
+    if (inputMethod == ImageInputSource.NeoFinderSelection || activeApp == "NeoFinder") {
+      const neoFinderImages = (await getSelectedNeoFinderImages()).split(", ");
+      neoFinderImages.forEach((imgPath) => {
+        if (!selectedImages.includes(imgPath)) {
+          selectedImages.push(imgPath);
+        }
+      });
+      if (selectedImages.length > 0) {
+        return selectedImages;
+      }
+    }
+  } catch (error) {
+    // Error getting images from NeoFinder, fall back to Finder
+    console.error("Couldn't get images from NeoFinder");
+    inputMethodError = true;
+  }
+
+  // Attempt to get selected images from HoudahSpot
+  try {
+    if (inputMethod == ImageInputSource.HoudahSpotSelection || activeApp == "HoudahSpot") {
+      const houdahSpotImages = (await getSelectedHoudahSpotImages()).split(", ");
+      houdahSpotImages.forEach((imgPath) => {
+        if (!selectedImages.includes(imgPath)) {
+          selectedImages.push(imgPath);
+        }
+      });
+      if (selectedImages.length > 0) {
+        return selectedImages;
+      }
+    }
+  } catch (error) {
+    // Error getting images from HoudahSpot, fall back to Finder
+    console.error("Couldn't get images from HoudahSpot");
     inputMethodError = true;
   }
 
@@ -236,15 +415,25 @@ export const getSelectedImages = async (): Promise<string[]> => {
  * @returns A promise resolving when the operation is complete.
  */
 export const moveImageResultsToFinalDestination = async (imagePaths: string[]) => {
+  let activeApp = "Finder";
+  try {
+    activeApp = (await getFrontmostApplication()).name;
+  } catch {
+    console.error("Couldn't get frontmost application");
+  }
+
   const preferences = getPreferenceValues<ExtensionPreferences>();
   // Handle the result per the user's preference
   if (preferences.imageResultHandling == ImageResultHandling.CopyToClipboard) {
     await copyImagesAtPathsToClipboard(imagePaths);
     deleteFiles(imagePaths);
   } else if (preferences.imageResultHandling == ImageResultHandling.OpenInPreview) {
-    console.log(imagePaths);
     await openPathsInPreview(imagePaths);
     deleteFiles(imagePaths);
+  } else if (preferences.inputMethod == ImageInputSource.NeoFinderSelection || activeApp == "NeoFinder") {
+    await showInFinder(imagePaths[0]);
+  } else if (preferences.inputMethod == ImageInputSource.HoudahSpotSelection || activeApp == "HoudahSpot") {
+    await showInFinder(imagePaths[0]);
   }
 };
 
@@ -287,34 +476,30 @@ export const getWebPBinaryPath = async () => {
  * @returns A promise resolving to the path of the resulting image.
  */
 export const execSIPSCommandOnWebP = async (command: string, webpPath: string): Promise<string> => {
-  const preferences = getPreferenceValues<ExtensionPreferences>();
   const tmpPath = `${environment.supportPath}/tmp.png`;
-
-  let newPath = webpPath;
-  if (preferences.imageResultHandling == ImageResultHandling.SaveToDownloads) {
-    newPath = path.join(os.homedir(), "Downloads", path.basename(newPath));
-  } else if (preferences.imageResultHandling == ImageResultHandling.SaveToDesktop) {
-    newPath = path.join(os.homedir(), "Desktop", path.basename(newPath));
-  } else if (
-    preferences.imageResultHandling == ImageResultHandling.CopyToClipboard ||
-    preferences.imageResultHandling == ImageResultHandling.OpenInPreview
-  ) {
-    newPath = path.join(os.tmpdir(), path.basename(newPath));
-  }
-
-  let iter = 2;
-  while (fs.existsSync(newPath) && os.tmpdir() != path.dirname(newPath)) {
-    newPath = path.join(
-      path.dirname(newPath),
-      path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`
-    );
-    iter++;
-  }
+  const newPath = getDestinationPaths([webpPath])[0];
 
   const [dwebpPath, cwebpPath] = await getWebPBinaryPath();
 
   execSync(
-    `${dwebpPath} "${webpPath}" -o "${tmpPath}" && ${command} "${tmpPath}" && ${cwebpPath} "${tmpPath}" -o "${newPath}" ; rm "${tmpPath}"`
+    `${dwebpPath} "${webpPath}" -o "${tmpPath}" && ${command} "${tmpPath}" && ${cwebpPath} "${tmpPath}" -o "${newPath}" ; rm "${tmpPath}"`,
+  );
+  return newPath;
+};
+
+/**
+ * Executes a SIPS command on an AVIF image, using a temporary PNG in the process.
+ *
+ * @param command The SIPS command to execute.
+ * @param avifPath The path of the AVIF image.
+ */
+export const execSIPSCommandOnAVIF = async (command: string, avifPath: string): Promise<string> => {
+  const tmpPath = `${environment.supportPath}/tmp.png`;
+  const newPath = getDestinationPaths([avifPath])[0];
+
+  const { encoderPath, decoderPath } = await getAVIFEncPaths();
+  execSync(
+    `${decoderPath} "${avifPath}" "${tmpPath}" && ${command} "${tmpPath}" && ${encoderPath} "${tmpPath}" "${newPath}" ; rm "${tmpPath}"`,
   );
   return newPath;
 };
@@ -326,34 +511,13 @@ export const execSIPSCommandOnWebP = async (command: string, webpPath: string): 
  * @param svgPath The path of the SVG image.
  */
 export const execSIPSCommandOnSVG = async (command: string, svgPath: string): Promise<string> => {
-  const preferences = getPreferenceValues<ExtensionPreferences>();
   const tmpPath = `${environment.supportPath}/tmp.bmp`;
-
-  let newPath = svgPath;
-  if (preferences.imageResultHandling == ImageResultHandling.SaveToDownloads) {
-    newPath = path.join(os.homedir(), "Downloads", path.basename(newPath));
-  } else if (preferences.imageResultHandling == ImageResultHandling.SaveToDesktop) {
-    newPath = path.join(os.homedir(), "Desktop", path.basename(newPath));
-  } else if (
-    preferences.imageResultHandling == ImageResultHandling.CopyToClipboard ||
-    preferences.imageResultHandling == ImageResultHandling.OpenInPreview
-  ) {
-    newPath = path.join(os.tmpdir(), path.basename(newPath));
-  }
-
-  let iter = 2;
-  while (fs.existsSync(newPath) && os.tmpdir() != path.dirname(newPath)) {
-    newPath = path.join(
-      path.dirname(newPath),
-      path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`
-    );
-    iter++;
-  }
+  const newPath = getDestinationPaths([svgPath])[0];
 
   convertSVG("BMP", svgPath, tmpPath);
   execSync(`chmod +x ${environment.assetsPath}/potrace/potrace`);
   execSync(
-    `${command} "${tmpPath}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${tmpPath}"; rm "${tmpPath}"`
+    `${command} "${tmpPath}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${tmpPath}"; rm "${tmpPath}"`,
   );
   return newPath;
 };
@@ -394,6 +558,14 @@ export const convertSVG = (targetType: string, svgPath: string, newPath: string)
  */
 export const convertPDF = (targetType: string, pdfPath: string, newPathBase: string) => {
   const preferences = getPreferenceValues<ExtensionPreferences>();
+
+  let repType = "NSPNGFileType";
+  if (targetType == "JPEG") {
+    repType = "NSJPEGFileType";
+  } else if (targetType == "TIFF") {
+    repType = "NSTIFFFileType";
+  }
+
   runAppleScriptSync(`use framework "Foundation"
   use framework "PDFKit"
   
@@ -428,7 +600,7 @@ export const convertPDF = (targetType: string, pdfPath: string, newPathBase: str
     -- Convert the NSImage to PNG data
     set pngData to pdfImage's TIFFRepresentation()
     set pngRep to (current application's NSBitmapImageRep's imageRepWithData:pngData)
-    set pngData to (pngRep's representationUsingType:(current application's NSPNGFileType) |properties|:(missing value))
+    set pngData to (pngRep's representationUsingType:(current application's ${repType}) |properties|:(missing value))
     
     -- Write the PNG data to a new file
     set filePath to "${newPathBase}/page-" & pageIndex + 1 & ".${targetType.toLowerCase()}"
@@ -496,7 +668,7 @@ export const rotatePDF = (pdfPath: string, degrees: number): string => {
   while (fs.existsSync(newPath) && os.tmpdir() != path.dirname(newPath)) {
     newPath = path.join(
       path.dirname(newPath),
-      path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`
+      path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`,
     );
     iter++;
   }
@@ -546,7 +718,7 @@ export const flipPDF = (pdfPath: string, direction: Direction) => {
   while (fs.existsSync(newPath) && os.tmpdir() != path.dirname(newPath)) {
     newPath = path.join(
       path.dirname(newPath),
-      path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`
+      path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`,
     );
     iter++;
   }
@@ -775,9 +947,14 @@ export const getCurrentDirectory = () => {
  *
  * @param originalPaths The original paths of image files.
  * @param generated Whether the images were generated by the extension.
+ * @param newExtension The new extension of the images, if any.
  * @returns The destination paths for the given original paths.
  */
-export const getDestinationPaths = (originalPaths: string[], generated = false): string[] => {
+export const getDestinationPaths = (
+  originalPaths: string[],
+  generated = false,
+  newExtension: string | undefined = undefined,
+): string[] => {
   const preferences = getPreferenceValues<ExtensionPreferences>();
   return originalPaths.map((imgPath) => {
     let newPath = imgPath;
@@ -788,7 +965,7 @@ export const getDestinationPaths = (originalPaths: string[], generated = false):
     } else if (
       (preferences.imageResultHandling == ImageResultHandling.SaveInContainingFolder ||
         preferences.imageResultHandling == ImageResultHandling.ReplaceOriginal) &&
-      (preferences.inputMethod == "Clipboard" || generated)
+      (preferences.inputMethod == ImageInputSource.Clipboard || generated)
     ) {
       newPath = path.join(getCurrentDirectory(), path.basename(newPath));
     } else if (
@@ -798,6 +975,8 @@ export const getDestinationPaths = (originalPaths: string[], generated = false):
       newPath = path.join(os.tmpdir(), path.basename(newPath));
     }
 
+    newPath = newExtension ? newPath.replace(path.extname(newPath), `.${newExtension}`) : newPath;
+
     if (
       preferences.imageResultHandling != ImageResultHandling.ReplaceOriginal &&
       os.tmpdir() != path.dirname(newPath)
@@ -806,12 +985,11 @@ export const getDestinationPaths = (originalPaths: string[], generated = false):
       while (fs.existsSync(newPath)) {
         newPath = path.join(
           path.dirname(newPath),
-          path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`
+          path.basename(newPath, path.extname(newPath)) + ` (${iter})${path.extname(newPath)}`,
         );
         iter++;
       }
     }
-
     return newPath;
   });
 };

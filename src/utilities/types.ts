@@ -67,7 +67,7 @@ export type Generator = {
     CIFilterName: string,
     width: number,
     height: number,
-    inputs: { [key: string]: unknown }
+    inputs: { [key: string]: unknown },
   ) => Promise<string>;
 
   /**

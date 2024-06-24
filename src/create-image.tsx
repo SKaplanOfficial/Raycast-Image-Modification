@@ -26,7 +26,7 @@ export default function Command() {
             actions={<SizeSelectionActionPanel width={width} height={height} />}
           />
         );
-      })
+      }),
   );
 
   const wideOptions = standardDimensions.map((width) =>
@@ -41,7 +41,7 @@ export default function Command() {
             actions={<SizeSelectionActionPanel width={width} height={height} />}
           />
         );
-      })
+      }),
   );
 
   const tallOptions = standardDimensions.map((width) =>
@@ -56,7 +56,7 @@ export default function Command() {
             actions={<SizeSelectionActionPanel width={width} height={height} />}
           />
         );
-      })
+      }),
   );
 
   const extremeOptions = standardDimensions.map((width) =>
@@ -71,7 +71,7 @@ export default function Command() {
             actions={<SizeSelectionActionPanel width={width} height={height} />}
           />
         );
-      })
+      }),
   );
 
   return (

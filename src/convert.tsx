@@ -20,6 +20,7 @@ import runOperation from "./operations/runOperation";
  */
 const FORMATS = [
   "ASTC",
+  "AVIF",
   "BMP",
   "DDS",
   "EXR",

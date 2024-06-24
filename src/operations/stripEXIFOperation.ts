@@ -11,6 +11,7 @@
 import { execSync } from "child_process";
 
 import {
+  execSIPSCommandOnAVIF,
   execSIPSCommandOnSVG,
   execSIPSCommandOnWebP,
   getDestinationPaths,
@@ -47,12 +48,15 @@ export default async function stripEXIF(sourcePaths: string[], exifToolLocation:
     } else if (imagePath.toLowerCase().endsWith(".svg")) {
       // Convert to PNG, remove EXIF, then restore to SVG
       resultPaths.push(await execSIPSCommandOnSVG(`${exifCommand} -all= "${imagePath}"`, imagePath));
+    } else if (imagePath.toLowerCase().endsWith(".avif")) {
+      // Convert to PNG, remove EXIF, then restore to AVIF
+      resultPaths.push(await execSIPSCommandOnAVIF(`${exifCommand} -all= "${imagePath}"`, imagePath));
     } else {
       // Image is not a special format, so just strip EXIF data
       const newPath = newPaths[sourcePaths.indexOf(imagePath)];
       resultPaths.push(newPath);
 
-      execSync(`${exifCommand} -all= -o "${newPath}" "${imagePath}"`);
+      execSync(`${exifCommand} -all= -o! "${newPath}" "${imagePath}" -overwrite_original`);
     }
   }
 

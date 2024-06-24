@@ -11,6 +11,7 @@
 import { execSync } from "child_process";
 
 import {
+  execSIPSCommandOnAVIF,
   execSIPSCommandOnSVG,
   execSIPSCommandOnWebP,
   getDestinationPaths,
@@ -40,23 +41,31 @@ export default async function scale(sourcePaths: string[], scaleFactor: number) 
       resultPaths.push(
         await execSIPSCommandOnWebP(
           `sips --resampleHeightWidth ${oldHeight * scaleFactor} ${oldWidth * scaleFactor}`,
-          imagePath
-        )
+          imagePath,
+        ),
       );
     } else if (imagePath.toLowerCase().endsWith("svg")) {
       // Convert to PNG, scale, and restore to SVG
       resultPaths.push(
         await execSIPSCommandOnSVG(
           `sips --resampleHeightWidth ${oldHeight * scaleFactor} ${oldWidth * scaleFactor}`,
-          imagePath
-        )
+          imagePath,
+        ),
+      );
+    } else if (imagePath.toLowerCase().endsWith("avif")) {
+      // Convert to PNG, scale, and restore to AVIF
+      resultPaths.push(
+        await execSIPSCommandOnAVIF(
+          `sips --resampleHeightWidth ${oldHeight * scaleFactor} ${oldWidth * scaleFactor}`,
+          imagePath,
+        ),
       );
     } else {
       // File is a normal image type
       const newPath = newPaths[sourcePaths.indexOf(imagePath)];
       resultPaths.push(newPath);
       execSync(
-        `sips --resampleHeightWidth ${oldHeight * scaleFactor} ${oldWidth * scaleFactor} -o "${newPath}" "${imagePath}"`
+        `sips --resampleHeightWidth ${oldHeight * scaleFactor} ${oldWidth * scaleFactor} -o "${newPath}" "${imagePath}"`,
       );
     }
   }

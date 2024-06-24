@@ -1,5 +1,15 @@
 # Image Modification Changelog
 
+## [AVIF, More File Managers, & Bug Fixes] - TBA
+
+- Added support for NeoFinder, HoudahSpot (05-24-2024)
+- Added support for AVIF images (05-24-2024)
+- Added support for several new conversions: PDF->SVG, PDF->WebP, SVG->PDF, SVG->WebP (05-24-2024)
+- Added an alert for when automation permissions have not been granted (05-24-2024)
+- Operations will now look at alternative file managers first if they are the active app, regardless of the preference setting (05-24-2024)
+- Fixed images not getting saved to the correct location when using the clipboard as the image source
+- Fixed PDF->JPEG conversion not actually using JPEG as the output format
+
 ## [Webp Image Quality Fix] - 2024-06-18
 
 - Fixed an issue when converting to webp degrades the quality of the image

@@ -13,6 +13,7 @@ import * as fs from "fs";
 import path from "path";
 
 import {
+  execSIPSCommandOnAVIF,
   execSIPSCommandOnSVG,
   execSIPSCommandOnWebP,
   getDestinationPaths,
@@ -34,7 +35,8 @@ export default async function rotate(sourcePaths: string[], degrees: number) {
   if (
     pathStrings.toLowerCase().includes("webp") ||
     pathStrings.toLowerCase().includes("svg") ||
-    pathStrings.toLowerCase().includes("pdf")
+    pathStrings.toLowerCase().includes("pdf") ||
+    pathStrings.toLowerCase().includes("avif")
   ) {
     // Special formats in selection -- Handle each image individually
     const resultPaths = [];
@@ -48,6 +50,9 @@ export default async function rotate(sourcePaths: string[], degrees: number) {
       } else if (imgPath.toLowerCase().endsWith("pdf")) {
         // Rotate each page of a PDF
         resultPaths.push(rotatePDF(imgPath, degrees));
+      } else if (imgPath.toLowerCase().endsWith("avif")) {
+        // Convert to PNG, rotate, and restore to AVIF
+        resultPaths.push(await execSIPSCommandOnAVIF(`sips --rotate ${degrees}`, imgPath));
       } else {
         // Image is not a special format, so just rotate it using SIPS
         const newPath = newPaths[sourcePaths.indexOf(imgPath)];

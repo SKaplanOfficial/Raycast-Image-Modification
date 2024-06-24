@@ -48,6 +48,14 @@
           "value": "Path Finder"
         },
         {
+          "title": "Selection in NeoFinder",
+          "value": "NeoFinder"
+        },
+        {
+          "title": "Selection in HoudahSpot",
+          "value": "HoudahSpot"
+        },
+        {
           "title": "Clipboard",
           "value": "Clipboard"
         }
@@ -158,6 +166,14 @@
           "label": "ASTC",
           "name": "showASTC",
           "description": "Whether to show ASTC as a conversion option",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        },
+        {
+          "label": "AVIF",
+          "name": "showAVIF",
+          "description": "Whether to show AVIF as a conversion option",
           "type": "checkbox",
           "default": true,
           "required": false
@@ -445,23 +461,20 @@
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.48.8",
-    "@raycast/utils": "^1.4.18",
+    "@raycast/api": "^1.77.1",
+    "@raycast/utils": "^1.16.1",
     "mathjs": "^11.8.2",
-    "run-applescript": "^6.1.0",
     "svgo": "^3.0.2",
     "tar": "^6.2.0"
   },
   "devDependencies": {
-    "@types/node": "18.8.3",
-    "@types/react": "18.0.9",
-    "@types/tar": "^6.1.11",
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
-    "prettier": "^2.5.1",
-    "typescript": "^4.4.3"
+    "@raycast/eslint-config": "^1.0.8",
+    "@types/node": "20.8.10",
+    "@types/react": "18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5",
+    "@types/tar": "^6.1.11"
   },
   "scripts": {
     "build": "ray build -e dist",

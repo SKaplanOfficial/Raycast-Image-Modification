@@ -42,7 +42,7 @@ export default function ImagePatternGrid(props: { width: number; height: number 
   const [checkerboardItems, setCheckerboardItems] = useState<[string, GeneratorOptions][]>(Array(5).fill(["", {}]));
   const [stripeItems, setStripeItems] = useState<[string, GeneratorOptions][]>(Array(5).fill(["", {}]));
   const [solidColorItems, setSolidColorItems] = useState<[string, string, GeneratorOptions][]>(
-    Array(10).fill(["", "", {}])
+    Array(10).fill(["", "", {}]),
   );
   const [linearGradientItems, setLinearGradientItems] = useState<[string, GeneratorOptions][]>(Array(5).fill(["", {}]));
   const [radialGradientItems, setRadialGradientItems] = useState<[string, GeneratorOptions][]>(Array(5).fill(["", {}]));
@@ -87,7 +87,7 @@ export default function ImagePatternGrid(props: { width: number; height: number 
             newItems[index] = [content, options];
             return newItems;
           });
-        })
+        }),
       ),
 
       Promise.all(
@@ -98,7 +98,7 @@ export default function ImagePatternGrid(props: { width: number; height: number 
             newItems[index] = [content, options];
             return newItems;
           });
-        })
+        }),
       ),
 
       Promise.all(
@@ -115,7 +115,7 @@ export default function ImagePatternGrid(props: { width: number; height: number 
             ];
             return newItems;
           });
-        })
+        }),
       ),
 
       Promise.all(
@@ -126,7 +126,7 @@ export default function ImagePatternGrid(props: { width: number; height: number 
             newItems[index] = [content, options];
             return newItems;
           });
-        })
+        }),
       ),
 
       Promise.all(
@@ -137,14 +137,14 @@ export default function ImagePatternGrid(props: { width: number; height: number 
             newItems[index] = [content, options];
             return newItems;
           });
-        })
+        }),
       ),
 
       Promise.resolve(
         (async () => {
           const content = await generatePreview(generators.Random.CIFilterName, {});
           setRandomItem(content);
-        })()
+        })(),
       ),
 
       Promise.resolve(
@@ -152,7 +152,7 @@ export default function ImagePatternGrid(props: { width: number; height: number 
           const options = getStarShineOptions(redValues, greenValues, blueValues, alphaValues);
           const content = await generatePreview(generators.StarShine.CIFilterName, options);
           setStarShineItem([content, options]);
-        })()
+        })(),
       ),
 
       Promise.resolve(
@@ -160,7 +160,7 @@ export default function ImagePatternGrid(props: { width: number; height: number 
           const options = getLenticularHaloOptions(redValues, greenValues, blueValues, alphaValues);
           const content = await generatePreview(generators.LenticularHalo.CIFilterName, options);
           setLenticularHaloItem([content, options]);
-        })()
+        })(),
       ),
 
       Promise.resolve(
@@ -168,7 +168,7 @@ export default function ImagePatternGrid(props: { width: number; height: number 
           const options = getSunbeamsOptions(redValues, greenValues, blueValues, alphaValues);
           const content = await generatePreview(generators.Sunbeams.CIFilterName, options);
           setSunbeamsItem([content, options]);
-        })()
+        })(),
       ),
     ]).then(() => setLoading(false));
   };

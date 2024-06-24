@@ -17,6 +17,17 @@ export enum Direction {
 }
 
 /**
+ * The source of the input image(s).
+ */
+export enum ImageInputSource {
+  FinderSelection = "Finder",
+  PathFinderSelection = "Path Finder",
+  NeoFinderSelection = "NeoFinder",
+  HoudahSpotSelection = "HoudahSpot",
+  Clipboard = "Clipboard",
+}
+
+/**
  * Strategy for handling the result of the image processing, i.e. where to save or display the result.
  */
 export enum ImageResultHandling {

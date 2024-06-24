@@ -12,6 +12,7 @@ import { execSync } from "child_process";
 import path from "path";
 
 import {
+  execSIPSCommandOnAVIF,
   execSIPSCommandOnSVG,
   execSIPSCommandOnWebP,
   flipPDF,
@@ -35,7 +36,8 @@ export default async function flip(sourcePaths: string[], direction: Direction) 
   if (
     pathStrings.toLowerCase().includes("webp") ||
     pathStrings.toLowerCase().includes("svg") ||
-    pathStrings.toLowerCase().includes("pdf")
+    pathStrings.toLowerCase().includes("pdf") ||
+    pathStrings.toLowerCase().includes("avif")
   ) {
     // Special types present -- Handle each image individually
     const resultPaths = [];
@@ -49,6 +51,9 @@ export default async function flip(sourcePaths: string[], direction: Direction) 
       } else if (imgPath.toLowerCase().endsWith("pdf")) {
         // Flip each page of PDF
         resultPaths.push(flipPDF(imgPath, direction));
+      } else if (imgPath.toLowerCase().endsWith("avif")) {
+        // Convert to PNG, flip, and restore to AVIF
+        resultPaths.push(await execSIPSCommandOnAVIF(`sips --flip ${directionString}`, imgPath));
       } else {
         // Image is not a special format, so just flip it using SIPS
         const newPath = newPaths[sourcePaths.indexOf(imgPath)];

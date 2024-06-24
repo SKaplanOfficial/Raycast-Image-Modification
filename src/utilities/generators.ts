@@ -113,7 +113,7 @@ export const generate = async (
   CIFilterName: string,
   width: number,
   height: number,
-  inputs: { [key: string]: unknown }
+  inputs: { [key: string]: unknown },
 ) => {
   return runAppleScript(`use framework "Foundation"
     use framework "Quartz"
@@ -216,7 +216,7 @@ export const getCheckerboardOptions = (
   redValues: number[],
   greenValues: number[],
   blueValues: number[],
-  alphaValues: number[]
+  alphaValues: number[],
 ) => [
   {
     inputColor0: `current application's CIColor's colorWithRed:${redValues[0] / 255} green:${
@@ -269,7 +269,7 @@ export const getStripeOptions = (
   redValues: number[],
   greenValues: number[],
   blueValues: number[],
-  alphaValues: number[]
+  alphaValues: number[],
 ) => [
   {
     inputColor0: `current application's CIColor's colorWithRed:${redValues[0] / 255} green:${
@@ -331,7 +331,7 @@ export const getLinearGradientOptions = (
   redValues: number[],
   greenValues: number[],
   blueValues: number[],
-  alphaValues: number[]
+  alphaValues: number[],
 ) => [
   {
     inputColor0: `current application's CIColor's colorWithRed:${redValues[0] / 255} green:${
@@ -389,7 +389,7 @@ export const getRadialGradientOptions = (
   redValues: number[],
   greenValues: number[],
   blueValues: number[],
-  alphaValues: number[]
+  alphaValues: number[],
 ) => [
   {
     inputColor0: `current application's CIColor's colorWithRed:${redValues[0] / 255} green:${
@@ -452,7 +452,7 @@ export const getStarShineOptions = (
   redValues: number[],
   greenValues: number[],
   blueValues: number[],
-  alphaValues: number[]
+  alphaValues: number[],
 ) => ({
   inputColor: `current application's CIColor's colorWithRed:${redValues[0] / 255} green:${greenValues[0] / 255} blue:${
     blueValues[0] / 255
@@ -470,7 +470,7 @@ export const getLenticularHaloOptions = (
   redValues: number[],
   greenValues: number[],
   blueValues: number[],
-  alphaValues: number[]
+  alphaValues: number[],
 ) => ({
   inputColor: `current application's CIColor's colorWithRed:${redValues[0] / 255} green:${greenValues[0] / 255} blue:${
     blueValues[0] / 255
@@ -488,7 +488,7 @@ export const getSunbeamsOptions = (
   redValues: number[],
   greenValues: number[],
   blueValues: number[],
-  alphaValues: number[]
+  alphaValues: number[],
 ) => ({
   inputColor: `current application's CIColor's colorWithRed:${redValues[0] / 255} green:${greenValues[0] / 255} blue:${
     blueValues[0] / 255

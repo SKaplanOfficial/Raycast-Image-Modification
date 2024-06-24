@@ -44,7 +44,7 @@ export default async function runOperation(params: {
     await showErrorToast(
       `${params.failureMessage} ${params.selectedImages.length.toString()} ${pluralized}`,
       error as Error,
-      toast
+      toast,
     );
   } finally {
     await cleanup();
