@@ -28,6 +28,7 @@ export interface ExtensionPreferences {
  */
 export interface ConvertPreferences {
   showASTC: boolean;
+  showAVIF: boolean;
   showBMP: boolean;
   showDDS: boolean;
   showEXR: boolean;
@@ -48,7 +49,8 @@ export interface ConvertPreferences {
   showTIFF: boolean;
   showWEBP: boolean;
   showSVG: boolean;
-  [key: string]: boolean;
+  jpegExtension: string;
+  [key: string]: boolean | string;
 }
 
 /**
@@ -69,4 +71,14 @@ export interface PadPreferences {
    * The default color to use when padding images and no color argument is provided.
    */
   defaultPadColor: string;
+}
+
+/**
+ * Preferences for the Create New Image command.
+ */
+export interface CreateImagePreferences {
+  /**
+   * Whether to generate previews for the image patterns.
+   */
+  generatePreviews: boolean;
 }

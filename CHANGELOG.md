@@ -1,12 +1,15 @@
 # Image Modification Changelog
 
-## [AVIF, More File Managers, & Bug Fixes] - TBA
+## [AVIF, More File Managers, & Bug Fixes] - 2024-06-26
 
-- Added support for NeoFinder, HoudahSpot (05-24-2024)
-- Added support for AVIF images (05-24-2024)
-- Added support for several new conversions: PDF->SVG, PDF->WebP, SVG->PDF, SVG->WebP (05-24-2024)
-- Added an alert for when automation permissions have not been granted (05-24-2024)
-- Operations will now look at alternative file managers first if they are the active app, regardless of the preference setting (05-24-2024)
+- Added support for NeoFinder and HoudahSpot
+- Added support for AVIF images
+- Added support for several new conversions: PDF->SVG, PDF->WebP, SVG->PDF, SVG->WebP
+- Added ability to create QuickLinks to specific conversion and image creation operations
+- Added "Generate Image Previews" toggle for the "Create New Image" command
+- Added "JPEG Extension" setting for the "Convert Images" command
+- Added an alert for when automation permissions have not been granted
+- Fixed "Strip EXIF Data" failing when using the "Replace Original" result handling option
 - Fixed images not getting saved to the correct location when using the clipboard as the image source
 - Fixed PDF->JPEG conversion not actually using JPEG as the output format
 

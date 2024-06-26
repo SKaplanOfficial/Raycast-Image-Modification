@@ -8,12 +8,25 @@
  * Last modified  : 2023-07-06 16:48:08
  */
 
-import { Color, Grid } from "@raycast/api";
+import { Color, Grid, LaunchProps, useNavigation } from "@raycast/api";
 
 import { standardDimensions } from "./utilities/generators";
 import SizeSelectionActionPanel from "./components/SizeSelectionActionPanel";
+import ImagePatternGrid from "./components/ImagePatternGrid";
+import { useEffect, useRef } from "react";
 
-export default function Command() {
+export default function Command(props: LaunchProps) {
+  const viewRef = useRef(false);
+  const { push } = useNavigation();
+
+  useEffect(() => {
+    if (props.launchContext && !viewRef.current) {
+      viewRef.current = true;
+      const { imageWidth, imageHeight, imagePattern } = props.launchContext;
+      push(<ImagePatternGrid width={imageWidth} height={imageHeight} pattern={imagePattern} />);
+    }
+  }, [props.launchContext]);
+
   const squareOptions = standardDimensions.map((width) =>
     standardDimensions
       .filter((height) => width == height)

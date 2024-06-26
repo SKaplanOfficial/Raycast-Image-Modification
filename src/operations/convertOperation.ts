@@ -11,9 +11,11 @@
 import { execSync } from "child_process";
 import path from "path";
 
-import { environment } from "@raycast/api";
+import { environment, getPreferenceValues } from "@raycast/api";
 
 import {
+  addItemToRemove,
+  cleanup,
   convertPDF,
   convertSVG,
   getDestinationPaths,
@@ -22,6 +24,7 @@ import {
 } from "../utilities/utils";
 import { getAVIFEncPaths } from "../utilities/avif";
 import { readdirSync } from "fs";
+import { ConvertPreferences } from "../utilities/preferences";
 
 /**
  * Converts images to the specified format, storing the results according to the user's preferences.
@@ -30,11 +33,13 @@ import { readdirSync } from "fs";
  * @param desiredType The desired format to convert the images to.
  * @returns A promise that resolves when the operation is complete.
  */
-export default async function convert(sourcePaths: string[], desiredType: string, outputPaths?: string[]) {
+export default async function convert(sourcePaths: string[], desiredType: string, outputPaths?: string[], intermediate = false) {
+  const preferences = getPreferenceValues<ConvertPreferences>();
   const resultPaths = [];
   for (const [index, item] of sourcePaths.entries()) {
     const originalType = path.extname(item).slice(1);
-    const newPath = outputPaths?.[index] || getDestinationPaths([item], false, desiredType.toLowerCase())[0];
+    const newType = desiredType === "JPEG" ? preferences.jpegExtension : desiredType.toLowerCase();
+    const newPath = outputPaths?.[index] || (await getDestinationPaths([item], false, newType))[0];
 
     if (desiredType === "WEBP" && originalType.toLowerCase() !== "svg") {
       // Input Format -> WebP
@@ -52,7 +57,7 @@ export default async function convert(sourcePaths: string[], desiredType: string
           path.basename(newPath, ".webp") + " WebP",
         );
         execSync(`mkdir -p "${folderPath}"`);
-        convertPDF("PNG", item, folderPath);
+        await convertPDF("PNG", item, folderPath);
 
         const pngFiles = readdirSync(folderPath).map((file) => path.join(folderPath, file));
         for (const pngFile of pngFiles) {
@@ -62,24 +67,18 @@ export default async function convert(sourcePaths: string[], desiredType: string
         execSync(`${cwebpPath} "${item}" -lossless -o "${newPath}"`);
       }
     } else if (originalType.toLowerCase() == "svg") {
-      if (desiredType == "AVIF") {
-        // SVG -> PNG -> AVIF
+      if (["AVIF", "PDF", "WEBP"].includes(desiredType)) {
+        // SVG -> PNG -> AVIF, PDF, or WebP
         const pngPath = `${environment.supportPath}/tmp.png`;
-        convertSVG("PNG", item, pngPath);
+        await convertSVG("PNG", item, pngPath);
+        await addItemToRemove(pngPath);
         await convert([pngPath], desiredType, [newPath]);
-      } else if (desiredType == "PDF") {
-        // SVG -> PNG -> PDF
-        const pngPath = `${environment.supportPath}/tmp.png`;
-        convertSVG("PNG", item, pngPath);
-        await convert([pngPath], desiredType, [newPath]);
-      } else if (desiredType == "WEBP") {
-        // SVG -> PNG -> WebP
-        const pngPath = `${environment.supportPath}/tmp.png`;
-        convertSVG("PNG", item, pngPath);
-        await convert([pngPath], desiredType, [newPath]);
+        return;
       } else {
         // SVG -> NSBitmapImageRep -> Desired Format
-        convertSVG(desiredType, item, newPath);
+        await convertSVG(desiredType, item, newPath);
+        await convert([newPath], desiredType, [newPath]);
+        return;
       }
     } else if (desiredType == "SVG") {
       const bmpPath = `${environment.supportPath}/tmp.bmp`;
@@ -96,10 +95,10 @@ export default async function convert(sourcePaths: string[], desiredType: string
         // PDF -> PNG -> BMP -> SVG
         const folderPath = path.join(
           newPath.split("/").slice(0, -1).join("/"),
-          path.basename(newPath, ".svg") + "  SVG",
+          path.basename(newPath, ".svg") + " SVG",
         );
         execSync(`mkdir -p "${folderPath}"`);
-        convertPDF("PNG", item, folderPath);
+        await convertPDF("PNG", item, folderPath);
 
         const pngFiles = readdirSync(folderPath).map((file) => path.join(folderPath, file));
         for (const pngFile of pngFiles) {
@@ -128,7 +127,7 @@ export default async function convert(sourcePaths: string[], desiredType: string
           path.basename(newPath, ".avif") + " AVIF",
         );
         execSync(`mkdir -p "${folderPath}"`);
-        convertPDF("PNG", item, folderPath);
+        await convertPDF("PNG", item, folderPath);
 
         const pngFiles = readdirSync(folderPath).map((file) => path.join(folderPath, file));
         for (const pngFile of pngFiles) {
@@ -136,7 +135,7 @@ export default async function convert(sourcePaths: string[], desiredType: string
         }
       } else {
         const pngPath = `${environment.supportPath}/tmp.png`;
-        await convert([item], "PNG", [pngPath]);
+        await convert([item], "PNG", [pngPath], true);
         execSync(`${encoderPath} "${pngPath}" "${newPath}"`);
       }
     } else if (originalType.toLowerCase() == "webp") {
@@ -150,13 +149,14 @@ export default async function convert(sourcePaths: string[], desiredType: string
       const folderName = `${itemName?.substring(0, itemName.lastIndexOf("."))} ${desiredType}`;
       const folderPath = path.join(newPath.split("/").slice(0, -1).join("/"), folderName);
       execSync(`mkdir -p "${folderPath}"`);
-      convertPDF(desiredType, item, folderPath);
+      await convertPDF(desiredType, item, folderPath);
     } else if (originalType.toLowerCase() == "avif") {
       // AVIF -> PNG -> Desired Format
       const { decoderPath } = await getAVIFEncPaths();
       const pngPath = `${environment.supportPath}/tmp.png`;
       execSync(`${decoderPath} "${item}" "${pngPath}"`);
       await convert([pngPath], desiredType, [newPath]);
+      return;
     } else {
       // General Input Format -> Desired Format
       execSync(`sips --setProperty format ${desiredType.toLowerCase()} "${item}" --out "${newPath}"`);
@@ -165,5 +165,8 @@ export default async function convert(sourcePaths: string[], desiredType: string
     resultPaths.push(newPath);
   }
 
-  await moveImageResultsToFinalDestination(resultPaths);
+  if (!intermediate) {
+    await moveImageResultsToFinalDestination(resultPaths);
+    await cleanup();
+  }
 }

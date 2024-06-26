@@ -17,7 +17,7 @@
     "rotate",
     "sips"
   ],
-  "version": "1.7.0",
+  "version": "1.8.0",
   "icon": "command-icon.png",
   "author": "HelloImSteven",
   "contributors": [
@@ -152,7 +152,10 @@
         }
       ],
       "keywords": [
-        "turn"
+        "turn",
+        "revolve",
+        "pivot",
+        "spin"
       ]
     },
     {
@@ -337,6 +340,24 @@
           "type": "checkbox",
           "default": true,
           "required": false
+        },
+        {
+          "title": "JPEG Extension",
+          "name": "jpegExtension",
+          "description": "The extension to use when converting to JPEG",
+          "type": "dropdown",
+          "data": [
+            {
+              "title": "jpg",
+              "value": "jpg"
+            },
+            {
+              "title": "jpeg",
+              "value": "jpeg"
+            }
+          ],
+          "default": "jpeg",
+          "required": false
         }
       ],
       "keywords": [
@@ -440,13 +461,35 @@
           "required": false,
           "type": "text"
         }
+      ],
+      "keywords": [
+        "compress",
+        "improve",
+        "reduce",
+        "shrink"
       ]
     },
     {
       "name": "create-image",
       "title": "Create New Image",
       "description": "Create a new image by specifying its dimensions, color, and pattern.",
-      "mode": "view"
+      "mode": "view",
+      "preferences": [
+        {
+          "label": "Generate Image Previews",
+          "name": "generatePreviews",
+          "description": "Whether to generate previews of images upon every use of the command. If disable, the command will run faster, but you'll only see static previews that won't match the color of the generated image.",
+          "type": "checkbox",
+          "default": true,
+          "required": false
+        }
+      ],
+      "keywords": [
+        "generate",
+        "make",
+        "build",
+        "construct"
+      ]
     },
     {
       "name": "strip-exif",

@@ -30,7 +30,7 @@ import { Direction } from "../utilities/enums";
  */
 export default async function flip(sourcePaths: string[], direction: Direction) {
   const pathStrings = '"' + sourcePaths.join('" "') + '"';
-  const newPaths = getDestinationPaths(sourcePaths);
+  const newPaths = await getDestinationPaths(sourcePaths);
   const directionString = direction == Direction.HORIZONTAL ? "horizontal" : "vertical";
 
   if (
@@ -50,7 +50,7 @@ export default async function flip(sourcePaths: string[], direction: Direction) 
         resultPaths.push(await execSIPSCommandOnSVG(`sips --flip ${directionString}`, imgPath));
       } else if (imgPath.toLowerCase().endsWith("pdf")) {
         // Flip each page of PDF
-        resultPaths.push(flipPDF(imgPath, direction));
+        resultPaths.push(await flipPDF(imgPath, direction));
       } else if (imgPath.toLowerCase().endsWith("avif")) {
         // Convert to PNG, flip, and restore to AVIF
         resultPaths.push(await execSIPSCommandOnAVIF(`sips --flip ${directionString}`, imgPath));

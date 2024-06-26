@@ -12,7 +12,6 @@ import { execSync } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import path from "path";
-import { runAppleScript, runAppleScriptSync } from "run-applescript";
 
 import {
   Clipboard,
@@ -29,6 +28,7 @@ import { Direction, ImageInputSource, ImageResultHandling } from "./enums";
 import { copyImagesAtPathsToClipboard, getClipboardImages } from "./clipboard";
 import { ExtensionPreferences } from "./preferences";
 import { getAVIFEncPaths } from "./avif";
+import { runAppleScript } from "@raycast/utils";
 
 /**
  * Gets currently selected images in Finder.
@@ -284,6 +284,15 @@ const getSelectedHoudahSpotImages = async (): Promise<string> => {
 };
 
 /**
+ * Adds an item to the list of temporary files to remove.
+ * @param item The path of the item to remove.
+ */
+export const addItemToRemove = async (item: string) => {
+  const itemsToRemove = (await LocalStorage.getItem("itemsToRemove")) ?? "";
+  await LocalStorage.setItem("itemsToRemove", itemsToRemove + ", " + item);
+};
+
+/**
  * Cleans up temporary files created by the extension.
  *
  * @returns A promise resolving when the cleanup is complete.
@@ -477,7 +486,7 @@ export const getWebPBinaryPath = async () => {
  */
 export const execSIPSCommandOnWebP = async (command: string, webpPath: string): Promise<string> => {
   const tmpPath = `${environment.supportPath}/tmp.png`;
-  const newPath = getDestinationPaths([webpPath])[0];
+  const newPath = (await getDestinationPaths([webpPath]))[0];
 
   const [dwebpPath, cwebpPath] = await getWebPBinaryPath();
 
@@ -495,7 +504,7 @@ export const execSIPSCommandOnWebP = async (command: string, webpPath: string): 
  */
 export const execSIPSCommandOnAVIF = async (command: string, avifPath: string): Promise<string> => {
   const tmpPath = `${environment.supportPath}/tmp.png`;
-  const newPath = getDestinationPaths([avifPath])[0];
+  const newPath = (await getDestinationPaths([avifPath]))[0];
 
   const { encoderPath, decoderPath } = await getAVIFEncPaths();
   execSync(
@@ -512,9 +521,9 @@ export const execSIPSCommandOnAVIF = async (command: string, avifPath: string): 
  */
 export const execSIPSCommandOnSVG = async (command: string, svgPath: string): Promise<string> => {
   const tmpPath = `${environment.supportPath}/tmp.bmp`;
-  const newPath = getDestinationPaths([svgPath])[0];
+  const newPath = (await getDestinationPaths([svgPath]))[0];
 
-  convertSVG("BMP", svgPath, tmpPath);
+  await convertSVG("BMP", svgPath, tmpPath);
   execSync(`chmod +x ${environment.assetsPath}/potrace/potrace`);
   execSync(
     `${command} "${tmpPath}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${tmpPath}"; rm "${tmpPath}"`,
@@ -529,8 +538,8 @@ export const execSIPSCommandOnSVG = async (command: string, svgPath: string): Pr
  * @param svgPath The path of the SVG image.
  * @param newPath The path to save the resulting image in.
  */
-export const convertSVG = (targetType: string, svgPath: string, newPath: string) => {
-  runAppleScriptSync(`use framework "Foundation"
+export const convertSVG = async (targetType: string, svgPath: string, newPath: string) => {
+  return runAppleScript(`use framework "Foundation"
   use scripting additions
 
   -- Load SVG image from file
@@ -543,7 +552,12 @@ export const convertSVG = (targetType: string, svgPath: string, newPath: string)
   -- Convert image to PNG data
   set tiffData to svgImage's TIFFRepresentation()
   set theBitmap to current application's NSBitmapImageRep's alloc()'s initWithData:tiffData
-  set pngData to theBitmap's representationUsingType:(current application's NSBitmapImageFileType${targetType}) |properties|:(missing value)
+
+  try
+    set pngData to theBitmap's representationUsingType:(current application's NSBitmapImageFileType${targetType}) |properties|:(missing value)
+  on error
+    set pngData to theBitmap's representationUsingType:(current application's NSBitmapImageFileTypePNG) |properties|:(missing value)
+  end
   
   -- Save PNG data to file
   pngData's writeToFile:"${newPath}" atomically:false`);
@@ -556,7 +570,7 @@ export const convertSVG = (targetType: string, svgPath: string, newPath: string)
  * @param pdfPath The path of the PDF document.
  * @param newPathBase The folder to place the resulting images in.
  */
-export const convertPDF = (targetType: string, pdfPath: string, newPathBase: string) => {
+export const convertPDF = async (targetType: string, pdfPath: string, newPathBase: string) => {
   const preferences = getPreferenceValues<ExtensionPreferences>();
 
   let repType = "NSPNGFileType";
@@ -566,7 +580,7 @@ export const convertPDF = (targetType: string, pdfPath: string, newPathBase: str
     repType = "NSTIFFFileType";
   }
 
-  runAppleScriptSync(`use framework "Foundation"
+  return runAppleScript(`use framework "Foundation"
   use framework "PDFKit"
   
   -- Load the PDF file as NSData
@@ -640,7 +654,7 @@ export const convertPDF = (targetType: string, pdfPath: string, newPathBase: str
     thePasteboard's clearContents()
     thePasteboard's writeObjects:pageImages`
       : ``
-  }`);
+  }`, { timeout: 60 * 1000 * 5 });
 };
 
 /**
@@ -649,7 +663,7 @@ export const convertPDF = (targetType: string, pdfPath: string, newPathBase: str
  * @param pdfPath The path of the PDF to rotate.
  * @param degrees The amount to rotate each page by. Must be a multiple of 90.
  */
-export const rotatePDF = (pdfPath: string, degrees: number): string => {
+export const rotatePDF = async (pdfPath: string, degrees: number): Promise<string> => {
   const preferences = getPreferenceValues<ExtensionPreferences>();
 
   let newPath = pdfPath;
@@ -673,7 +687,7 @@ export const rotatePDF = (pdfPath: string, degrees: number): string => {
     iter++;
   }
 
-  runAppleScriptSync(`use framework "Foundation"
+  runAppleScript(`use framework "Foundation"
   use framework "PDFKit"
   
   -- Load the PDF file as NSData
@@ -699,7 +713,7 @@ export const rotatePDF = (pdfPath: string, degrees: number): string => {
  * @param pdfPath The PDF to flip each page of.
  * @param direction The direction to flip. Must be a valid {@link Direction}.
  */
-export const flipPDF = (pdfPath: string, direction: Direction) => {
+export const flipPDF = async (pdfPath: string, direction: Direction) => {
   const preferences = getPreferenceValues<ExtensionPreferences>();
 
   let newPath = pdfPath;
@@ -730,7 +744,7 @@ export const flipPDF = (pdfPath: string, direction: Direction) => {
       : `(transform's scaleXBy:1 yBy:-1)
     (transform's translateXBy:0 yBy:(-(item 2 of item 2 of pdfRect)))`;
 
-  runAppleScriptSync(`use framework "Foundation"
+  runAppleScript(`use framework "Foundation"
   use framework "PDFKit"
   
   -- Load the PDF file as NSData
@@ -881,8 +895,8 @@ export const deleteFiles = (filePaths: string | string[]) => {
  *
  * @returns The name of the frontmost application, or "Finder" if no application owns the menubar, which shouldn't generally happen.
  */
-export const getMenubarOwningApplication = () => {
-  return runAppleScriptSync(`use framework "Foundation"
+export const getMenubarOwningApplication = async () => {
+  return runAppleScript(`use framework "Foundation"
     use scripting additions
     set workspace to current application's NSWorkspace's sharedWorkspace()
     set runningApps to workspace's runningApplications()
@@ -907,11 +921,11 @@ export const getMenubarOwningApplication = () => {
  *
  * @returns The current directory of the file manager.
  */
-export const getCurrentDirectory = () => {
+export const getCurrentDirectory = async () => {
   // Get name of frontmost application
   let activeApp = "Finder";
   try {
-    activeApp = getMenubarOwningApplication();
+    activeApp = await getMenubarOwningApplication();
   } catch {
     console.error("Couldn't get frontmost application");
   }
@@ -919,7 +933,7 @@ export const getCurrentDirectory = () => {
   // Attempt to get current directory of Path Finder
   try {
     if (activeApp == "Path Finder") {
-      return runAppleScriptSync(`tell application "Path Finder"
+      return runAppleScript(`tell application "Path Finder"
           if 1 ≤ (count finder windows) then
             get POSIX path of (target of finder window 1)
           else
@@ -933,7 +947,7 @@ export const getCurrentDirectory = () => {
   }
 
   // Fallback to getting current directory from Finder
-  return runAppleScriptSync(`tell application "Finder"
+  return runAppleScript(`tell application "Finder"
       if 1 <= (count Finder windows) then
         get POSIX path of (target of window 1 as alias)
       else
@@ -950,12 +964,13 @@ export const getCurrentDirectory = () => {
  * @param newExtension The new extension of the images, if any.
  * @returns The destination paths for the given original paths.
  */
-export const getDestinationPaths = (
+export const getDestinationPaths = async (
   originalPaths: string[],
   generated = false,
   newExtension: string | undefined = undefined,
-): string[] => {
+): Promise<string[]> => {
   const preferences = getPreferenceValues<ExtensionPreferences>();
+  const currentDirectory = await getCurrentDirectory();
   return originalPaths.map((imgPath) => {
     let newPath = imgPath;
     if (preferences.imageResultHandling == ImageResultHandling.SaveToDownloads) {
@@ -967,7 +982,7 @@ export const getDestinationPaths = (
         preferences.imageResultHandling == ImageResultHandling.ReplaceOriginal) &&
       (preferences.inputMethod == ImageInputSource.Clipboard || generated)
     ) {
-      newPath = path.join(getCurrentDirectory(), path.basename(newPath));
+      newPath = path.join(currentDirectory, path.basename(newPath));
     } else if (
       preferences.imageResultHandling == ImageResultHandling.CopyToClipboard ||
       preferences.imageResultHandling == ImageResultHandling.OpenInPreview

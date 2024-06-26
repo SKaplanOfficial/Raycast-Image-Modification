@@ -11,13 +11,13 @@
 import { execSync } from "child_process";
 import * as fs from "fs";
 import path from "path";
-import { runAppleScriptSync } from "run-applescript";
 import { optimize as svgoOptimize } from "svgo";
 
 import { environment } from "@raycast/api";
 
 import { getDestinationPaths, getWebPBinaryPath, moveImageResultsToFinalDestination } from "../utilities/utils";
 import { getAVIFEncPaths } from "../utilities/avif";
+import { runAppleScript } from "@raycast/utils";
 
 /**
  * Optimizes a JPEG image by applying lossy compression.
@@ -26,8 +26,8 @@ import { getAVIFEncPaths } from "../utilities/avif";
  * @param newPath The path to save the optimized JPEG image to.
  * @param amount The amount of compression to apply to the JPEG image.
  */
-const optimizeJPEG = (jpegPath: string, newPath: string, amount: number) => {
-  runAppleScriptSync(`use framework "Foundation"
+const optimizeJPEG = async (jpegPath: string, newPath: string, amount: number) => {
+  runAppleScript(`use framework "Foundation"
   
     -- Load JPEG image from file
     set jpegData to current application's NSData's alloc()'s initWithContentsOfFile:"${jpegPath}"
@@ -54,7 +54,7 @@ const optimizeJPEG = (jpegPath: string, newPath: string, amount: number) => {
 const optimizeWEBP = async (webpPath: string, amount: number) => {
   const jpegPath = `${environment.supportPath}/tmp.jpeg`;
 
-  let newPath = getDestinationPaths([webpPath])[0];
+  let newPath = (await getDestinationPaths([webpPath]))[0];
   newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).webp");
 
   execSync(`chmod +x ${environment.assetsPath}/webp/cwebp`);
@@ -63,7 +63,7 @@ const optimizeWEBP = async (webpPath: string, amount: number) => {
   const [dwebpPath, cwebpPath] = await getWebPBinaryPath();
 
   execSync(`${dwebpPath} "${webpPath}" -o "${jpegPath}"`);
-  optimizeJPEG(jpegPath, newPath, amount);
+  await optimizeJPEG(jpegPath, newPath, amount);
   execSync(`${cwebpPath} "${jpegPath}" -o "${newPath}"; rm "${jpegPath}"`);
   return newPath;
 };
@@ -74,8 +74,8 @@ const optimizeWEBP = async (webpPath: string, amount: number) => {
  * @param svgPath The path of the SVG image to optimize.
  * @returns The path of the optimized SVG image.
  */
-const optimizeSVG = (svgPath: string) => {
-  let newPath = getDestinationPaths([svgPath])[0];
+const optimizeSVG = async (svgPath: string) => {
+  let newPath = (await getDestinationPaths([svgPath]))[0];
   newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).svg");
 
   const data = fs.readFileSync(svgPath);
@@ -95,7 +95,7 @@ const optimizeSVG = (svgPath: string) => {
  * @returns A promise that resolves when optimization is complete.
  */
 export default async function optimize(sourcePaths: string[], amount: number) {
-  const newPaths = getDestinationPaths(sourcePaths);
+  const newPaths = await getDestinationPaths(sourcePaths);
 
   const resultPaths = [];
   for (const imgPath of sourcePaths) {
@@ -104,13 +104,13 @@ export default async function optimize(sourcePaths: string[], amount: number) {
       resultPaths.push(await optimizeWEBP(imgPath, amount));
     } else if (imgPath.toLowerCase().endsWith("svg")) {
       // Optimize SVG using SVGO
-      resultPaths.push(optimizeSVG(imgPath));
+      resultPaths.push(await optimizeSVG(imgPath));
     } else if (imgPath.toLowerCase().endsWith("jpg") || imgPath.toLowerCase().endsWith("jpeg")) {
       // Optimize JPEG images using NSBitmapImageRep compression
       let newPath = newPaths[sourcePaths.indexOf(imgPath)];
       newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).jpeg");
       resultPaths.push(newPath);
-      optimizeJPEG(imgPath, newPath, amount);
+      await optimizeJPEG(imgPath, newPath, amount);
     } else if (imgPath.toLowerCase().endsWith("avif")) {
       // Optimize AVIF images using avifenc
       const { encoderPath, decoderPath } = await getAVIFEncPaths();
@@ -131,7 +131,7 @@ export default async function optimize(sourcePaths: string[], amount: number) {
       newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).jpeg");
       resultPaths.push(newPath);
 
-      optimizeJPEG(imgPath, jpegPath, amount);
+      await optimizeJPEG(imgPath, jpegPath, amount);
       execSync(`sips --setProperty format jpeg "${jpegPath}" --out "${newPath}"; rm "${jpegPath}"`);
     }
   }

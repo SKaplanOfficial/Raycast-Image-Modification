@@ -30,7 +30,7 @@ import {
  */
 export default async function rotate(sourcePaths: string[], degrees: number) {
   const pathStrings = '"' + sourcePaths.join('" "') + '"';
-  const newPaths = getDestinationPaths(sourcePaths);
+  const newPaths = await getDestinationPaths(sourcePaths);
 
   if (
     pathStrings.toLowerCase().includes("webp") ||
@@ -49,7 +49,7 @@ export default async function rotate(sourcePaths: string[], degrees: number) {
         resultPaths.push(await execSIPSCommandOnSVG(`sips --rotate ${degrees}`, imgPath));
       } else if (imgPath.toLowerCase().endsWith("pdf")) {
         // Rotate each page of a PDF
-        resultPaths.push(rotatePDF(imgPath, degrees));
+        resultPaths.push(await rotatePDF(imgPath, degrees));
       } else if (imgPath.toLowerCase().endsWith("avif")) {
         // Convert to PNG, rotate, and restore to AVIF
         resultPaths.push(await execSIPSCommandOnAVIF(`sips --rotate ${degrees}`, imgPath));

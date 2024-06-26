@@ -21,7 +21,9 @@ import { getDestinationPaths, moveImageResultsToFinalDestination } from "../util
 export default async function applyFilter(sourcePaths: string[], filter: Filter) {
   const resultPaths = [];
   for (const imageFilePath of sourcePaths) {
-    const newPath = getDestinationPaths([imageFilePath], false, imageFilePath.endsWith(".pdf") ? "pdf" : "png")[0];
+    const newPath = (
+      await getDestinationPaths([imageFilePath], false, imageFilePath.endsWith(".pdf") ? "pdf" : "png")
+    )[0];
     await filter.applyMethod(imageFilePath, newPath, filter.CIFilterName);
     resultPaths.push(newPath);
   }

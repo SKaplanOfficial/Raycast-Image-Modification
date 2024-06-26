@@ -8,7 +8,7 @@
  * Last modified  : 2023-07-06 15:48:31
  */
 
-import { runAppleScript } from "run-applescript";
+import { runAppleScript } from "@raycast/utils";
 
 /**
  * Gets the images from the clipboard as paths to temporary PNG files.

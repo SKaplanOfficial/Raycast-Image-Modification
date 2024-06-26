@@ -29,7 +29,7 @@ import {
  */
 export default async function resize(sourcePaths: string[], width: number, height: number) {
   const pathStrings = '"' + sourcePaths.join('" "') + '"';
-  const newPaths = getDestinationPaths(sourcePaths);
+  const newPaths = await getDestinationPaths(sourcePaths);
 
   if (
     pathStrings.toLocaleLowerCase().includes("webp") ||

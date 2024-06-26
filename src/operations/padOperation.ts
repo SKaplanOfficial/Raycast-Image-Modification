@@ -27,7 +27,7 @@ import {
  * @returns A promise that resolves when the operation is complete.
  */
 export default async function pad(sourcePaths: string[], padding: number, color: string) {
-  const newPaths = getDestinationPaths(sourcePaths);
+  const newPaths = await getDestinationPaths(sourcePaths);
   const resultPaths: string[] = [];
 
   for (const imagePath of sourcePaths) {

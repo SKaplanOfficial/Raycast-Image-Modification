@@ -17,8 +17,9 @@ import {
   getDestinationPaths,
   moveImageResultsToFinalDestination,
 } from "../utilities/utils";
-import { ExifToolLocation } from "../utilities/enums";
-import { environment } from "@raycast/api";
+import { ExifToolLocation, ImageResultHandling } from "../utilities/enums";
+import { environment, getPreferenceValues } from "@raycast/api";
+import { ExtensionPreferences } from "../utilities/preferences";
 
 /**
  * Strips EXIF data from the given images.
@@ -28,7 +29,8 @@ import { environment } from "@raycast/api";
  * @returns A promise that resolves when the operation is complete.
  */
 export default async function stripEXIF(sourcePaths: string[], exifToolLocation: ExifToolLocation) {
-  const newPaths = getDestinationPaths(sourcePaths);
+  const preferences = getPreferenceValues<ExtensionPreferences>();
+  const newPaths = await getDestinationPaths(sourcePaths);
   const resultPaths: string[] = [];
 
   const exifCommand =
@@ -56,7 +58,12 @@ export default async function stripEXIF(sourcePaths: string[], exifToolLocation:
       const newPath = newPaths[sourcePaths.indexOf(imagePath)];
       resultPaths.push(newPath);
 
-      execSync(`${exifCommand} -all= -o! "${newPath}" "${imagePath}" -overwrite_original`);
+      if (preferences.imageResultHandling === ImageResultHandling.ReplaceOriginal) {
+        // Replace the original image with the stripped version
+        execSync(`${exifCommand} -all= "${imagePath}" -overwrite_original`);
+      } else {
+        execSync(`${exifCommand} -all= -o "${newPath}" "${imagePath}"`);
+      }
     }
   }
 

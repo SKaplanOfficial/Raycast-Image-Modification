@@ -8,8 +8,7 @@
  * Last modified  : 2023-07-06 16:47:11
  */
 
-import { runAppleScript } from "run-applescript";
-
+import { runAppleScript } from "@raycast/utils";
 import { Generator, GeneratorKey } from "./types";
 
 /**
@@ -64,7 +63,8 @@ export const generatePlaceholder = async (width: number, height: number, destina
  * @returns A promise that resolves with the data URL of the generated preview.
  */
 export const generatePreview = async (CIFilterName: string, inputs: { [key: string]: unknown }) => {
-  return runAppleScript(`use framework "Foundation"
+  return runAppleScript(
+    `use framework "Foundation"
       use framework "Quartz"
       use scripting additions
       
@@ -95,7 +95,11 @@ export const generatePreview = async (CIFilterName: string, inputs: { [key: stri
       set theResultData to theBitmapImageRep's representationUsingType:(current application's NSPNGFileType) |properties|:(missing value)
       set theBase64String to (theResultData's base64EncodedStringWithOptions:0) as text
       return "data:image/png;base64," & theBase64String
-  `);
+  `,
+    {
+      timeout: 0,
+    },
+  );
 };
 
 /**

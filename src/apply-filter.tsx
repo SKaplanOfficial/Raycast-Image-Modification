@@ -63,7 +63,7 @@ export default function Command() {
           setSelectedFilter(filter);
           const selection = await getSelectedImages();
           if (selection.length > 0 && selection[0].trim() !== "") {
-            const preview = getFilterThumbnail(filter, selection[0]);
+            const preview = await getFilterThumbnail(filter, selection[0]);
             setPreview(preview);
           }
           await cleanup();

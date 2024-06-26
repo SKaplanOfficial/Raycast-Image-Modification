@@ -4,7 +4,7 @@ Apply filters and transformations to various image formats, and convert between 
 
 ## Features
 
-- Convert between many different image formats, including WebP and SVG
+- Convert between many different image formats, including WebP, SVG, and AVIF
   - WebP conversion supported by [cwebp and dwebp](https://developers.google.com/speed/webp/docs/precompiled)
   - SVG conversion supported by [Potrace](https://potrace.sourceforge.net)
   - AVIF conversion supported by [libavif](https://github.com/AOMediaCodec/libavif)
