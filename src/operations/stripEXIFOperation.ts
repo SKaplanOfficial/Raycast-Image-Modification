@@ -53,7 +53,9 @@ export default async function stripEXIF(sourcePaths: string[], exifToolLocation:
       resultPaths.push(await execSIPSCommandOnSVG(`${exifCommand} -all= "${imagePath}"`, imagePath));
     } else if (imagePath.toLowerCase().endsWith(".avif")) {
       // Convert to PNG, remove EXIF, then restore to AVIF
-      resultPaths.push(await execSIPSCommandOnAVIF(`${exifCommand} -all= "${imagePath}" -overwrite_original`, imagePath));
+      resultPaths.push(
+        await execSIPSCommandOnAVIF(`${exifCommand} -all= "${imagePath}" -overwrite_original`, imagePath),
+      );
     } else {
       // Image is not a special format, so just strip EXIF data
       const newPath = newPaths[sourcePaths.indexOf(imagePath)];

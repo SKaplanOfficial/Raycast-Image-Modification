@@ -294,9 +294,9 @@ export const addItemToRemove = async (item: string) => {
 
 /**
  * Gets a path to a temporary file with the given name and extension.
- * 
+ *
  * The file will be added to the list of temporary files to remove upon cleanup.
- * 
+ *
  * @param name The name of the file
  * @param extension The extension of the file
  * @returns A promise resolving to the path of the temporary file.
@@ -305,7 +305,7 @@ export const scopedTempFile = async (name: string, extension: string) => {
   const tempPath = path.join(os.tmpdir(), `${name}.${extension}`);
   await addItemToRemove(tempPath);
   return tempPath;
-}
+};
 
 /**
  * Cleans up temporary files created by the extension.
@@ -595,7 +595,8 @@ export const convertPDF = async (targetType: string, pdfPath: string, newPathBas
     repType = "NSTIFFFileType";
   }
 
-  return runAppleScript(`use framework "Foundation"
+  return runAppleScript(
+    `use framework "Foundation"
   use framework "PDFKit"
   
   -- Load the PDF file as NSData
@@ -669,7 +670,9 @@ export const convertPDF = async (targetType: string, pdfPath: string, newPathBas
     thePasteboard's clearContents()
     thePasteboard's writeObjects:pageImages`
       : ``
-  }`, { timeout: 60 * 1000 * 5 });
+  }`,
+    { timeout: 60 * 1000 * 5 },
+  );
 };
 
 /**
