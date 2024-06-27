@@ -5,7 +5,7 @@
  * @author Stephen Kaplan <skaplanofficial@gmail.com>
  *
  * Created at     : 2023-07-dd 00:19:37
- * Last modified  : 2024-01-27 13:31:19
+ * Last modified  : 2024-06-26 21:37:46
  */
 
 import { execSync } from "child_process";
@@ -21,6 +21,7 @@ import {
   getDestinationPaths,
   getWebPBinaryPath,
   moveImageResultsToFinalDestination,
+  scopedTempFile,
 } from "../utilities/utils";
 import { getAVIFEncPaths } from "../utilities/avif";
 import { readdirSync } from "fs";
@@ -33,7 +34,12 @@ import { ConvertPreferences } from "../utilities/preferences";
  * @param desiredType The desired format to convert the images to.
  * @returns A promise that resolves when the operation is complete.
  */
-export default async function convert(sourcePaths: string[], desiredType: string, outputPaths?: string[], intermediate = false) {
+export default async function convert(
+  sourcePaths: string[],
+  desiredType: string,
+  outputPaths?: string[],
+  intermediate = false,
+) {
   const preferences = getPreferenceValues<ConvertPreferences>();
   const resultPaths = [];
   for (const [index, item] of sourcePaths.entries()) {
@@ -47,7 +53,7 @@ export default async function convert(sourcePaths: string[], desiredType: string
       if (originalType.toLowerCase() == "avif") {
         // AVIF -> PNG -> WebP
         const { decoderPath } = await getAVIFEncPaths();
-        const pngPath = `${environment.supportPath}/tmp.png`;
+        const pngPath = await scopedTempFile("tmp", "png");
         execSync(`${decoderPath} "${item}" "${pngPath}"`);
         execSync(`${cwebpPath} "${pngPath}" -lossless -o "${newPath}"`);
       } else if (originalType.toLowerCase() == "pdf") {
@@ -61,7 +67,8 @@ export default async function convert(sourcePaths: string[], desiredType: string
 
         const pngFiles = readdirSync(folderPath).map((file) => path.join(folderPath, file));
         for (const pngFile of pngFiles) {
-          execSync(`${cwebpPath} "${pngFile}" -lossless -o "${pngFile.replace(".png", ".webp")}" && rm "${pngFile}"`);
+          execSync(`${cwebpPath} "${pngFile}" -lossless -o "${pngFile.replace(".png", ".webp")}"`);
+          await addItemToRemove(pngFile);
         }
       } else {
         execSync(`${cwebpPath} "${item}" -lossless -o "${newPath}"`);
@@ -69,9 +76,8 @@ export default async function convert(sourcePaths: string[], desiredType: string
     } else if (originalType.toLowerCase() == "svg") {
       if (["AVIF", "PDF", "WEBP"].includes(desiredType)) {
         // SVG -> PNG -> AVIF, PDF, or WebP
-        const pngPath = `${environment.supportPath}/tmp.png`;
+        const pngPath = await scopedTempFile("tmp", "png");
         await convertSVG("PNG", item, pngPath);
-        await addItemToRemove(pngPath);
         await convert([pngPath], desiredType, [newPath]);
         return;
       } else {
@@ -81,15 +87,15 @@ export default async function convert(sourcePaths: string[], desiredType: string
         return;
       }
     } else if (desiredType == "SVG") {
-      const bmpPath = `${environment.supportPath}/tmp.bmp`;
+      const bmpPath = await scopedTempFile("tmp", "bmp");
       execSync(`chmod +x ${environment.assetsPath}/potrace/potrace`);
       if (originalType.toLowerCase() == "webp") {
         // WebP -> PNG -> BMP -> SVG
-        const pngPath = `${environment.supportPath}/tmp.png`;
+        const pngPath = await scopedTempFile("tmp", "png");
         const [dwebpPath] = await getWebPBinaryPath();
         execSync(`${dwebpPath} "${item}" -o "${pngPath}"`);
         execSync(
-          `sips --setProperty format "bmp" "${pngPath}" --out "${bmpPath}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${bmpPath}"; rm "${bmpPath}"; rm "${pngPath}"`,
+          `sips --setProperty format "bmp" "${pngPath}" --out "${bmpPath}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${bmpPath}"`,
         );
       } else if (originalType.toLowerCase() == "pdf") {
         // PDF -> PNG -> BMP -> SVG
@@ -105,16 +111,14 @@ export default async function convert(sourcePaths: string[], desiredType: string
           execSync(
             `sips --setProperty format "bmp" "${pngFile}" --out "${bmpPath}" && ${
               environment.assetsPath
-            }/potrace/potrace -s --tight -o "${pngFile.replace(
-              ".png",
-              ".svg",
-            )}" "${bmpPath}"; rm "${bmpPath}" && rm "${pngFile}"`,
+            }/potrace/potrace -s --tight -o "${pngFile.replace(".png", ".svg")}" "${bmpPath}"`,
           );
+          await addItemToRemove(pngFile);
         }
       } else {
         // Input Format -> BMP -> SVG
         execSync(
-          `sips --setProperty format "bmp" "${item}" --out "${bmpPath}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${bmpPath}"; rm "${bmpPath}"`,
+          `sips --setProperty format "bmp" "${item}" --out "${bmpPath}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${bmpPath}"`,
         );
       }
     } else if (desiredType == "AVIF") {
@@ -129,12 +133,15 @@ export default async function convert(sourcePaths: string[], desiredType: string
         execSync(`mkdir -p "${folderPath}"`);
         await convertPDF("PNG", item, folderPath);
 
-        const pngFiles = readdirSync(folderPath).map((file) => path.join(folderPath, file));
+        const pngFiles = readdirSync(folderPath)
+          .map((file) => path.join(folderPath, file))
+          .filter((file) => file.endsWith(".png"));
         for (const pngFile of pngFiles) {
-          execSync(`${encoderPath} "${pngFile}" "${pngFile.replace(".png", ".avif")}" && rm "${pngFile}"`);
+          execSync(`${encoderPath} "${pngFile}" "${pngFile.replace(".png", ".avif")}"`);
+          await addItemToRemove(pngFile);
         }
       } else {
-        const pngPath = `${environment.supportPath}/tmp.png`;
+        const pngPath = await scopedTempFile("tmp", "png");
         await convert([item], "PNG", [pngPath], true);
         execSync(`${encoderPath} "${pngPath}" "${newPath}"`);
       }
@@ -153,7 +160,7 @@ export default async function convert(sourcePaths: string[], desiredType: string
     } else if (originalType.toLowerCase() == "avif") {
       // AVIF -> PNG -> Desired Format
       const { decoderPath } = await getAVIFEncPaths();
-      const pngPath = `${environment.supportPath}/tmp.png`;
+      const pngPath = await scopedTempFile("tmp", "png");
       execSync(`${decoderPath} "${item}" "${pngPath}"`);
       await convert([pngPath], desiredType, [newPath]);
       return;

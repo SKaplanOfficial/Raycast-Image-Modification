@@ -5,7 +5,7 @@
  * @author Stephen Kaplan <skaplanofficial@gmail.com>
  *
  * Created at     : 2023-07-06 11:54:14
- * Last modified  : 2023-07-06 16:47:11
+ * Last modified  : 2024-06-26 21:37:46
  */
 
 import { runAppleScript } from "@raycast/utils";

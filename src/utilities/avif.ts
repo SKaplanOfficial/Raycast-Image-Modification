@@ -1,3 +1,13 @@
+/**
+ * @file utilities/avif.ts
+ *
+ * @summary Utilities for working with AVIF images.
+ * @author Stephen Kaplan <skaplanofficial@gmail.com>
+ *
+ * Created at     : 2024-06-04 05:46:15
+ * Last modified  : 2024-06-26 21:37:46
+ */
+
 import { LocalStorage, Toast, confirmAlert, showToast } from "@raycast/api";
 import { execSync } from "child_process";
 

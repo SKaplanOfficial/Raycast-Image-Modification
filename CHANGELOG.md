@@ -12,6 +12,7 @@
 - Fixed "Strip EXIF Data" failing when using the "Replace Original" result handling option
 - Fixed images not getting saved to the correct location when using the clipboard as the image source
 - Fixed PDF->JPEG conversion not actually using JPEG as the output format
+- Fixed "command not found" bug when optimizing WebP images
 
 ## [Webp Image Quality Fix] - 2024-06-18
 

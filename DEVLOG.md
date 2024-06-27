@@ -3,6 +3,8 @@
 ## 2024-06-26
 
 - Added "JPEG Extension" setting to control whether .jpeg or .jpg is used as the extension for images converted to JPEG
+- Fixed various instabilities when converting to/from various formats
+- Fixed "command not found" bug when optimizing WebP images
 
 ## 2024-06-25
 

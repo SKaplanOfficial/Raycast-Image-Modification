@@ -5,12 +5,13 @@
  * @author Stephen Kaplan <skaplanofficial@gmail.com>
  *
  * Created at     : 2023-07-05 23:35:48
- * Last modified  : 2024-01-28 05:10:25
+ * Last modified  : 2024-06-26 21:37:46
  */
 
 import { execSync } from "child_process";
 
 import {
+  cleanup,
   execSIPSCommandOnAVIF,
   execSIPSCommandOnSVG,
   execSIPSCommandOnWebP,
@@ -52,7 +53,7 @@ export default async function stripEXIF(sourcePaths: string[], exifToolLocation:
       resultPaths.push(await execSIPSCommandOnSVG(`${exifCommand} -all= "${imagePath}"`, imagePath));
     } else if (imagePath.toLowerCase().endsWith(".avif")) {
       // Convert to PNG, remove EXIF, then restore to AVIF
-      resultPaths.push(await execSIPSCommandOnAVIF(`${exifCommand} -all= "${imagePath}"`, imagePath));
+      resultPaths.push(await execSIPSCommandOnAVIF(`${exifCommand} -all= "${imagePath}" -overwrite_original`, imagePath));
     } else {
       // Image is not a special format, so just strip EXIF data
       const newPath = newPaths[sourcePaths.indexOf(imagePath)];
@@ -68,4 +69,5 @@ export default async function stripEXIF(sourcePaths: string[], exifToolLocation:
   }
 
   await moveImageResultsToFinalDestination(resultPaths);
+  await cleanup();
 }

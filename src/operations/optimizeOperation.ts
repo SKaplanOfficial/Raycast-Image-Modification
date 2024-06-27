@@ -5,7 +5,7 @@
  * @author Stephen Kaplan <skaplanofficial@gmail.com>
  *
  * Created at     : 2023-07-05 23:49:16
- * Last modified  : 2023-07-06 14:51:57
+ * Last modified  : 2024-06-26 21:37:46
  */
 
 import { execSync } from "child_process";
@@ -13,9 +13,13 @@ import * as fs from "fs";
 import path from "path";
 import { optimize as svgoOptimize } from "svgo";
 
-import { environment } from "@raycast/api";
-
-import { getDestinationPaths, getWebPBinaryPath, moveImageResultsToFinalDestination } from "../utilities/utils";
+import {
+  cleanup,
+  getDestinationPaths,
+  getWebPBinaryPath,
+  moveImageResultsToFinalDestination,
+  scopedTempFile,
+} from "../utilities/utils";
 import { getAVIFEncPaths } from "../utilities/avif";
 import { runAppleScript } from "@raycast/utils";
 
@@ -27,7 +31,7 @@ import { runAppleScript } from "@raycast/utils";
  * @param amount The amount of compression to apply to the JPEG image.
  */
 const optimizeJPEG = async (jpegPath: string, newPath: string, amount: number) => {
-  runAppleScript(`use framework "Foundation"
+  return runAppleScript(`use framework "Foundation"
   
     -- Load JPEG image from file
     set jpegData to current application's NSData's alloc()'s initWithContentsOfFile:"${jpegPath}"
@@ -52,19 +56,16 @@ const optimizeJPEG = async (jpegPath: string, newPath: string, amount: number) =
  * @returns The path of the optimized WebP image.
  */
 const optimizeWEBP = async (webpPath: string, amount: number) => {
-  const jpegPath = `${environment.supportPath}/tmp.jpeg`;
+  const jpegPath = await scopedTempFile("tmp", "jpeg");
 
   let newPath = (await getDestinationPaths([webpPath]))[0];
   newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).webp");
-
-  execSync(`chmod +x ${environment.assetsPath}/webp/cwebp`);
-  execSync(`chmod +x ${environment.assetsPath}/webp/dwebp`);
 
   const [dwebpPath, cwebpPath] = await getWebPBinaryPath();
 
   execSync(`${dwebpPath} "${webpPath}" -o "${jpegPath}"`);
   await optimizeJPEG(jpegPath, newPath, amount);
-  execSync(`${cwebpPath} "${jpegPath}" -o "${newPath}"; rm "${jpegPath}"`);
+  execSync(`${cwebpPath} "${jpegPath}" -o "${newPath}"`);
   return newPath;
 };
 
@@ -116,7 +117,7 @@ export default async function optimize(sourcePaths: string[], amount: number) {
       const { encoderPath, decoderPath } = await getAVIFEncPaths();
 
       // Convert to JPEG
-      const jpegPath = `${environment.supportPath}/tmp.jpeg`;
+      const jpegPath = await scopedTempFile("tmp", "jpeg");
       execSync(`${decoderPath} -q ${amount} "${imgPath}" "${jpegPath}"`);
 
       // Convert back to AVIF
@@ -124,16 +125,22 @@ export default async function optimize(sourcePaths: string[], amount: number) {
       newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).avif");
       resultPaths.push(newPath);
       execSync(`${encoderPath} "${jpegPath}" "${newPath}"`);
+    } else if (imgPath.toLowerCase().endsWith("pdf")) {
+      // PDF -> JPEG -> PDF
+      throw new Error(
+        "PDF optimization is not yet supported in this version of the extension, but it will be added in a future update.",
+      );
     } else {
       // Optimize any other SIPS-compatible image type
-      const jpegPath = `${environment.supportPath}/tmp.jpeg`;
+      const jpegPath = await scopedTempFile("tmp", "jpeg");
       let newPath = newPaths[sourcePaths.indexOf(imgPath)];
       newPath = path.join(path.dirname(newPath), path.basename(newPath, path.extname(newPath)) + " (Optimized).jpeg");
       resultPaths.push(newPath);
 
       await optimizeJPEG(imgPath, jpegPath, amount);
-      execSync(`sips --setProperty format jpeg "${jpegPath}" --out "${newPath}"; rm "${jpegPath}"`);
+      execSync(`sips --setProperty format jpeg "${jpegPath}" --out "${newPath}"`);
     }
   }
   await moveImageResultsToFinalDestination(resultPaths);
+  await cleanup();
 }

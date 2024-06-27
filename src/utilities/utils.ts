@@ -5,7 +5,7 @@
  * @author Stephen Kaplan <skaplanofficial@gmail.com>
  *
  * Created at     : 2023-07-06 14:48:00
- * Last modified  : 2024-01-27 13:31:10
+ * Last modified  : 2024-06-26 21:37:46
  */
 
 import { execSync } from "child_process";
@@ -293,6 +293,21 @@ export const addItemToRemove = async (item: string) => {
 };
 
 /**
+ * Gets a path to a temporary file with the given name and extension.
+ * 
+ * The file will be added to the list of temporary files to remove upon cleanup.
+ * 
+ * @param name The name of the file
+ * @param extension The extension of the file
+ * @returns A promise resolving to the path of the temporary file.
+ */
+export const scopedTempFile = async (name: string, extension: string) => {
+  const tempPath = path.join(os.tmpdir(), `${name}.${extension}`);
+  await addItemToRemove(tempPath);
+  return tempPath;
+}
+
+/**
  * Cleans up temporary files created by the extension.
  *
  * @returns A promise resolving when the cleanup is complete.
@@ -302,7 +317,7 @@ export const cleanup = async () => {
   const itemsToRemoveArray = itemsToRemove.toString().split(", ");
   for (const item of itemsToRemoveArray) {
     if (fs.existsSync(item)) {
-      await fs.promises.rm(item);
+      await fs.promises.rm(item, { recursive: true });
     }
   }
   await LocalStorage.removeItem("itemsToRemove");
@@ -485,13 +500,13 @@ export const getWebPBinaryPath = async () => {
  * @returns A promise resolving to the path of the resulting image.
  */
 export const execSIPSCommandOnWebP = async (command: string, webpPath: string): Promise<string> => {
-  const tmpPath = `${environment.supportPath}/tmp.png`;
+  const tmpPath = await scopedTempFile("tmp", "png");
   const newPath = (await getDestinationPaths([webpPath]))[0];
 
   const [dwebpPath, cwebpPath] = await getWebPBinaryPath();
 
   execSync(
-    `${dwebpPath} "${webpPath}" -o "${tmpPath}" && ${command} "${tmpPath}" && ${cwebpPath} "${tmpPath}" -o "${newPath}" ; rm "${tmpPath}"`,
+    `${dwebpPath} "${webpPath}" -o "${tmpPath}" && ${command} "${tmpPath}" && ${cwebpPath} "${tmpPath}" -o "${newPath}"`,
   );
   return newPath;
 };
@@ -503,12 +518,12 @@ export const execSIPSCommandOnWebP = async (command: string, webpPath: string): 
  * @param avifPath The path of the AVIF image.
  */
 export const execSIPSCommandOnAVIF = async (command: string, avifPath: string): Promise<string> => {
-  const tmpPath = `${environment.supportPath}/tmp.png`;
+  const tmpPath = await scopedTempFile("tmp", "png");
   const newPath = (await getDestinationPaths([avifPath]))[0];
 
   const { encoderPath, decoderPath } = await getAVIFEncPaths();
   execSync(
-    `${decoderPath} "${avifPath}" "${tmpPath}" && ${command} "${tmpPath}" && ${encoderPath} "${tmpPath}" "${newPath}" ; rm "${tmpPath}"`,
+    `${decoderPath} "${avifPath}" "${tmpPath}" && ${command} "${tmpPath}" && ${encoderPath} "${tmpPath}" "${newPath}"`,
   );
   return newPath;
 };
@@ -520,13 +535,13 @@ export const execSIPSCommandOnAVIF = async (command: string, avifPath: string): 
  * @param svgPath The path of the SVG image.
  */
 export const execSIPSCommandOnSVG = async (command: string, svgPath: string): Promise<string> => {
-  const tmpPath = `${environment.supportPath}/tmp.bmp`;
+  const tmpPath = await scopedTempFile("tmp", "bmp");
   const newPath = (await getDestinationPaths([svgPath]))[0];
 
   await convertSVG("BMP", svgPath, tmpPath);
   execSync(`chmod +x ${environment.assetsPath}/potrace/potrace`);
   execSync(
-    `${command} "${tmpPath}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${tmpPath}"; rm "${tmpPath}"`,
+    `${command} "${tmpPath}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${tmpPath}"`,
   );
   return newPath;
 };
