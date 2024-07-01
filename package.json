@@ -96,6 +96,15 @@
       ],
       "default": "replaceOriginal",
       "required": false
+    },
+    {
+      "title": "cwebp Lossless",
+      "name": "cwebpLossless",
+      "description": "Whether to use lossless conversion",
+      "label": "Lossless",
+      "type": "checkbox",
+      "default": true,
+      "required": false
     }
   ],
   "commands": [
