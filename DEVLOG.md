@@ -1,5 +1,31 @@
 # Image Modification DevLog - A more detailed changelog
 
+## 2024-06-26
+
+- Added "JPEG Extension" setting to control whether .jpeg or .jpg is used as the extension for images converted to JPEG
+- Fixed various instabilities when converting to/from various formats
+- Fixed "command not found" bug when optimizing WebP images
+
+## 2024-06-25
+
+- Added ability to create QuickLinks to specific conversion operations
+- Added ability to create QuickLinks to specific create-image operations
+- Added "Generate Image Previews" toggle to control whether image previews are generated for the "Create New Image" command
+- Fixed "Strip EXIF Data" failing when using the "Replace Original" result handling option
+
+## 2024-06-24
+
+- Added support for NeoFinder, HoudahSpot
+- Added support for AVIF images
+- Added support for several new conversions: PDF->SVG, PDF->WebP, SVG->PDF, SVG->WebP
+- Added an alert for when automation permissions have not been granted
+- Operations will now look at alternative file managers first if they are the active app, regardless of the preference setting
+
+## 2024-06-23
+
+- Fixed PDF->JPEG conversion not actually using JPEG as the output format
+- Fixed images not getting saved to the correct location when using the clipboard as the image source
+
 ## 2024-01-28
 
 - Added "Strip EXIF Data" command
