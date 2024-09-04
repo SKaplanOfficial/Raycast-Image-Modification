@@ -1,5 +1,16 @@
 # Image Modification DevLog - A more detailed changelog
 
+## 2024-09-04
+
+- Fixed error when installing the `avifenc` and `avifdec` binaries
+
+## 2024-07-08
+
+- Added a "Lossless Conversions" setting for WebP and AVIF image operations, disabled by default
+- Improved PNG optimization by using PNGOUT
+  - This is (potentially) a temporary fix until (potentially) moving to ImageMagick
+- Fixed a bug where intermediate files were not being deleted after various operations
+
 ## 2024-06-26
 
 - Added "JPEG Extension" setting to control whether .jpeg or .jpg is used as the extension for images converted to JPEG
