@@ -62,7 +62,8 @@ async function installAVIFEnc(): Promise<boolean> {
     } catch (error) {
       console.error(error);
       toast.title = "Failed to install AVIF Encoder.";
-      toast.message = "If you previously attempted to install libavif or avifenc, please run `brew doctor` followed by `brew cleanup` and try again.";
+      toast.message =
+        "If you previously attempted to install libavif or avifenc, please run `brew doctor` followed by `brew cleanup` and try again.";
       toast.style = Toast.Style.Failure;
     }
   }
