@@ -1,6 +1,13 @@
 # Image Modification Changelog
 
-## [Fix avifenc Installation] - 2024-09-04
+## [Bug Fixes & New Filters] - TBD
+
+- Improved memory management when previewing filters, reducing the likelihood of out-of-memory errors
+- Added setting to disable live filter previews
+- Added setting to hide specific filters/filter categories from the filter list
+- Added 28 new filters
+
+## [Fix avifenc Installation] - 2024-09-11
 
 - Fixed an issue where the `avifenc` and `avifdec` binaries were not being installed correctly
 

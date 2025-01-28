@@ -1,30 +1,84 @@
 # Image Modification DevLog - A more detailed changelog
 
-## 2024-09-04
+## Release 1.9.0 - TBD
+
+### 2025-01-28
+
+- Added setting to disable live filter previews
+- Added setting to hide specific filters/filter categories from the filter list
+
+### 2025-01-27
+
+- Added 28 new filters:
+  - Bump
+  - Circle Splash
+  - Droste
+  - Eightfold Reflected Tile
+  - Fourfold Reflected Tile
+  - Fourfold Rotated Tile
+  - Fourfold Translated Tile
+  - Gabor Gradients
+  - Glass Lozenge
+  - Glide Reflected Tile
+  - Height Field From Mask
+  - Hole
+  - Light Tunnel
+  - Linear Bump
+  - Op Tile
+  - Parallelogram Tile
+  - Perspective Tile
+  - Pinch
+  - Sixfold Reflected Tile
+  - Sixfold Rotated Tile
+  - Spotlight
+  - Torus Lens
+  - Triangle Kaleidoscope
+  - Triangle Tile
+  - Twelvefold Reflected Tile
+  - Twirl
+  - Unsharp Mask
+  - Vortex
+- Tagged each filter with its category
+- Improved error handling, ensuring that full error messages can be copied to the clipboard
+- Improve handling of file selection in non-standard folders such as Recents and smart folders (Resolve #16132)
+- Fixed incorrect filter used when applying Median filter
+
+### 2025-01-24
+
+- Improved memory management when previewing filters. Heap usage is now significantly lower (Resolve #13995)
+  - Filter previews are now scaled down to have a maximum width of 300px. This is fine for most filters, but some filters (e.g. `Kaleidoscope`) do not accurately represent the final result.
+
+## Release 1.8.2 - 2024-09-11
+
+### 2024-09-04
 
 - Fixed error when installing the `avifenc` and `avifdec` binaries
 
-## 2024-07-08
+## Release 1.8.1 - 2024-07-10
+
+### 2024-07-08
 
 - Added a "Lossless Conversions" setting for WebP and AVIF image operations, disabled by default
 - Improved PNG optimization by using PNGOUT
   - This is (potentially) a temporary fix until (potentially) moving to ImageMagick
 - Fixed a bug where intermediate files were not being deleted after various operations
 
-## 2024-06-26
+## Release 1.8.0 - 2024-06-27
+
+### 2024-06-26
 
 - Added "JPEG Extension" setting to control whether .jpeg or .jpg is used as the extension for images converted to JPEG
 - Fixed various instabilities when converting to/from various formats
 - Fixed "command not found" bug when optimizing WebP images
 
-## 2024-06-25
+### 2024-06-25
 
 - Added ability to create QuickLinks to specific conversion operations
 - Added ability to create QuickLinks to specific create-image operations
 - Added "Generate Image Previews" toggle to control whether image previews are generated for the "Create New Image" command
 - Fixed "Strip EXIF Data" failing when using the "Replace Original" result handling option
 
-## 2024-06-24
+### 2024-06-24
 
 - Added support for NeoFinder, HoudahSpot
 - Added support for AVIF images
@@ -32,38 +86,45 @@
 - Added an alert for when automation permissions have not been granted
 - Operations will now look at alternative file managers first if they are the active app, regardless of the preference setting
 
-## 2024-06-23
+### 2024-06-23
 
 - Fixed PDF->JPEG conversion not actually using JPEG as the output format
 - Fixed images not getting saved to the correct location when using the clipboard as the image source
 
-## 2024-01-28
+## Release 1.7.0 - 2024-01-29
 
+### 2024-01-28
+
+- Added live filter preview of first selected image file
 - Added "Strip EXIF Data" command
 - Added ability to install ExifTool (for stripping EXIF data)
 - Added checksum verification for ExifTool download
 - Fixed bug which caused an error when padding a webp image but still padded the image correctly
 
-## 2024-01-27
+### 2024-01-27
 
 - Added logic for handling arm vs. x86 architectures for libwebp operations
 - Updated libwebp binaries
 - Improved selection detection when Finder/Path Finder is not the frontmost application
 - Fixed bug where converting from WebP to anything but PNG would change the file extension but not the file format
 
-## 2023-07-06
+## Version 1.6.0 - Not Released (Live Previews carried into 1.7.0)
+
+## Release 1.5.0 - 2023-07-31
+
+### 2023-07-06
 
 - Added 'Rotation Unit' setting for the Rotate Images command, supporting degrees and radians
 - Added mathjs to support complex expressions in the Rotate Images command
 - Added 'Default Pad Color' setting for the Pad Images command
 
-## 2023-07-05
+### 2023-07-05
 
 - Added support for running all commands on the contents of the clipboard
 - Added 'Create New Image' command to create a new image with selectable dimensions and patterns
 - Filters can now be applied to every page of a PDF
 
-## 2023-06-18
+### 2023-06-18
 
 - Added settings to show/hide image formats from the list of conversion formats
   - Each format can be shown/hidden individually
@@ -76,3 +137,31 @@
   - Save to Downloads
   - Save to Desktop
 - Image operations will now ensure the destination file path is unique, to avoid overwriting existing files, unless the "Replace Original" result handling option is selected
+
+## Version 1.4.0 - 2023-04-06
+
+### 2023-04-03
+
+- Added static image previews for filters (thanks [@Arron Hunt](https://github.com/arronhunt)!)
+
+## Version 1.3.0 - 2023-03-31
+
+### 2023-03-29
+
+- Added support for WebP images to all operations using the [cwebp and dwebp binaries](https://developers.google.com/speed/webp/docs/precompiled)
+- Added support for Path Finder
+
+## Version 1.2.0 - 2023-03-24
+
+### 2023-03-22
+
+- Added 'Apply Image Filter' command to apply Core Image filters to images
+
+## Version 1.1.0 - 2023-03-16
+
+### 2023-03-15
+
+- Added 'Pad Images' command to add a colored border to images
+- Fixed bug where .heic images were not detected as images
+
+## Version 1.0 - 2023-03-07
