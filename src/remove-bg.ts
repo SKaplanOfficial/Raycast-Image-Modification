@@ -23,10 +23,12 @@ export default async function RemoveBgCommand(props: { arguments: { bgcolor: str
     return;
   }
 
+  const cropToSubject = crop === "yes" || (crop !== "no" && preferences.cropByDefault);
+
   const selectedImages = await getSelectedImages();
   const pluralized = selectedImages.length > 1 ? "backgrounds" : "background";
   await runOperation({
-    operation: () => removeBg(selectedImages, color || undefined, crop === "yes" ? true : preferences.cropByDefault),
+    operation: () => removeBg(selectedImages, color || undefined, cropToSubject),
     selectedImages,
     inProgressMessage: `Removing ${pluralized}...`,
     successMessage: `Removed ${pluralized} from`,

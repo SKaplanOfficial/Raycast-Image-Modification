@@ -319,10 +319,8 @@ export const getScopedTempDirectory = async (name: string) => {
   return {
     path: tempPath,
     [Symbol.asyncDispose]: async () => {
-      console.log(tempPath, fs.existsSync(tempPath));
       if (fs.existsSync(tempPath)) {
-        const t = await fs.promises.rm(tempPath, { recursive: true });
-        console.log("Deleted temp directory", tempPath, t);
+        await fs.promises.rm(tempPath, { recursive: true });
       }
     },
   };

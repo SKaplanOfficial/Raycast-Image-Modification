@@ -1,6 +1,22 @@
 # Image Modification DevLog - A more detailed changelog
 
-## Release 1.9.0 - TBD
+## Release 1.9.1 - TBD
+
+### 2025-02-01
+
+- Added 'Default Replacement Color' setting for the Remove Background command
+- Added 'Crop By Default' setting for the Remove Background command
+- Added 'Preserve Image Format' setting for the Remove Background command
+- Added support for WebP, AVIF, SVG, and PDF images to the Remove Background command
+- Set the 'Strip EXIF Data' command to be disabled by default
+
+### 2025-01-29
+
+- Added 'Remove Background' command to remove the background from selected images
+  - Users can specify a color to replace the background with
+  - Users can specify whether to crop the image to the foreground subject
+
+## Release 1.9.0 - 2025-01-30
 
 ### 2025-01-28
 

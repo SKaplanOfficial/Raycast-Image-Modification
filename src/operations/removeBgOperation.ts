@@ -25,7 +25,7 @@ import { makePDF } from "../utilities/pdf";
  * @param crop Whether to crop the image to the isolated subject.
  * @returns A promise that resolves when the operation is complete.
  */
-const runRemoveBgScript = async (sourcePath: string, outputPath: string, bgColor?: Color, crop = false) => {
+const runRemoveBgScript = async (sourcePath: string, outputPath: string, bgColor?: Color, crop = false, ignoreFailure = false) => {
   const result = await runAppleScript(
     `function run() {
       ObjC.import("CoreGraphics");
@@ -44,6 +44,15 @@ const runRemoveBgScript = async (sourcePath: string, outputPath: string, bgColor
       
       const result = request.results.firstObject;
       if (!result?.js) {
+        if (${ignoreFailure}) {
+          const outputURL = $.NSURL.fileURLWithPath("${outputPath}");
+          const context = $.CIContext.alloc.init;
+          const format = $.kCIFormatRGBA8;
+          const colorspace = $.CGColorSpaceCreateDeviceRGB();
+          const outputOptions = $.NSDictionary.alloc.init;
+          context.writePNGRepresentationOfImageToURLFormatColorSpaceOptionsError(image, outputURL, format, colorspace, outputOptions, error);
+          return outputURL.path;
+        }
         return "Failed to isolate foreground."
       }
       
@@ -88,6 +97,7 @@ const runRemoveBgScript = async (sourcePath: string, outputPath: string, bgColor
  * @returns A promise that resolves when the operation is complete.
  */
 export default async function removeBg(sourcePaths: string[], bgColorString?: string, crop = false) {
+  const preferences = getPreferenceValues<ExtensionPreferences & Preferences.RemoveBg>();
   const newPaths = await getDestinationPaths(sourcePaths);
   const resultPaths: string[] = [];
 
@@ -103,10 +113,9 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
   }
 
   for (const imagePath of sourcePaths) {
-    const newPath = newPaths[sourcePaths.indexOf(imagePath)];
+    let newPath = newPaths[sourcePaths.indexOf(imagePath)];
     if (imagePath.toLowerCase().endsWith(".webp")) {
       // WEBP -> PNG -> Remove Background -> WEBP
-      const preferences = getPreferenceValues<ExtensionPreferences>();
       await using tempPNGfromWEBP = await getScopedTempFile("sips-remove-bg-1", "png");
       await using tempPNGnoBG = await getScopedTempFile("sips-remove-bg-2", "png");
 
@@ -115,9 +124,15 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
         `${dwebpPath} ${preferences.useLosslessConversion ? "-lossless" : ""} "${imagePath}" -o "${tempPNGfromWEBP.path}"`,
       );
       await runRemoveBgScript(tempPNGfromWEBP.path, tempPNGnoBG.path, bgColor, crop);
-      execSync(
-        `${cwebpPath} ${preferences.useLosslessConversion ? "-lossless" : ""} "${tempPNGnoBG.path}" -o "${newPath}"`,
-      );
+
+      if (preferences.preserveFormat) {
+        execSync(
+          `${cwebpPath} ${preferences.useLosslessConversion ? "-lossless" : ""} "${tempPNGnoBG.path}" -o "${newPath}"`,
+        );
+      } else {
+        newPath = path.join(path.dirname(newPath), path.basename(newPath, ".webp") + ".png");
+        execSync(`mv "${tempPNGnoBG.path}" "${newPath}"`);
+      }
     } else if (imagePath.toLowerCase().endsWith(".svg")) {
       // SVG -> PNG -> Remove Background -> SVG
       await using tempPNGfromSVG = await getScopedTempFile("sips-remove-bg-1", "png");
@@ -125,22 +140,33 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
       await using tempSVG = await getScopedTempFile("sips-remove-bg-3", "svg");
       await convertSVG("PNG", imagePath, tempPNGfromSVG.path);
       await runRemoveBgScript(tempPNGfromSVG.path, tempPNGnoBG.path, bgColor, crop);
-      execSync(`chmod +x ${environment.assetsPath}/potrace/potrace`);
-      execSync(
-        `sips --setProperty format bmp "${tempPNGnoBG.path}" --out "${tempSVG.path}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${tempSVG.path}"`,
-      );
+
+      if (preferences.preserveFormat) {
+        execSync(`chmod +x ${environment.assetsPath}/potrace/potrace`);
+        execSync(
+          `sips --setProperty format bmp "${tempPNGnoBG.path}" --out "${tempSVG.path}" && ${environment.assetsPath}/potrace/potrace -s --tight -o "${newPath}" "${tempSVG.path}"`,
+        );
+      } else {
+        newPath = path.join(path.dirname(newPath), path.basename(newPath, ".svg") + ".png");
+        execSync(`mv "${tempPNGnoBG.path}" "${newPath}"`);
+      }
     } else if (imagePath.toLowerCase().endsWith(".avif")) {
       // AVIF -> PNG -> Remove Background -> AVIF
-      const preferences = getPreferenceValues<ExtensionPreferences>();
       await using tempPNGfromAVIF = await getScopedTempFile("sips-remove-bg-1", "png");
       await using tempPNGnoBG = await getScopedTempFile("sips-remove-bg-2", "png");
 
       const { encoderPath, decoderPath } = await getAVIFEncPaths();
       execSync(`${decoderPath} "${imagePath}" "${tempPNGfromAVIF.path}"`);
       await runRemoveBgScript(tempPNGfromAVIF.path, tempPNGnoBG.path, bgColor, crop);
-      execSync(
-        `${encoderPath} ${preferences.useLosslessConversion ? "-s 0 --min 0 --max 0 --minalpha 0 --maxalpha 0 --qcolor 100 --qalpha 100" : ""}  "${tempPNGnoBG.path}" "${newPath}"`,
-      );
+
+      if (preferences.preserveFormat) {
+        execSync(
+          `${encoderPath} ${preferences.useLosslessConversion ? "-s 0 --min 0 --max 0 --minalpha 0 --maxalpha 0 --qcolor 100 --qalpha 100" : ""}  "${tempPNGnoBG.path}" "${newPath}"`,
+        );
+      } else {
+        newPath = path.join(path.dirname(newPath), path.basename(newPath, ".avif") + ".png");
+        execSync(`mv "${tempPNGnoBG.path}" "${newPath}"`);
+      }
     } else if (imagePath.toLowerCase().endsWith(".pdf")) {
       // PDF -> PNG -> Remove Background -> PDF
       await using tempPNGfromPDFDir = await getScopedTempDirectory("sips-remove-bg-1");
@@ -152,17 +178,34 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
       );
       for (const pngFile of extractedPNGs) {
         const newPNGPath = path.join(tempPNGnoBGDir.path, path.basename(pngFile));
-        await runRemoveBgScript(pngFile, newPNGPath, bgColor, crop);
+        await runRemoveBgScript(pngFile, newPNGPath, bgColor, crop, true);
       }
 
-      const modifiedPNGs = (await readdir(tempPNGnoBGDir.path)).map((file) => path.join(tempPNGnoBGDir.path, file));
-      await makePDF(modifiedPNGs, newPath);
+      if (preferences.preserveFormat) {
+        const modifiedPNGs = (await readdir(tempPNGnoBGDir.path)).map((file) => path.join(tempPNGnoBGDir.path, file));
+        modifiedPNGs.sort((a, b) => parseInt(a?.split("-").at(-1) || "0") > parseInt(b?.split("-").at(-1) || "0") ? 1 : -1);
+        await makePDF(modifiedPNGs, newPath);
+      } else {
+        const newDirPath = path.join(path.dirname(newPath), path.basename(newPath, ".pdf") + " PNGs");
+        execSync(`mv "${tempPNGnoBGDir.path}" "${newDirPath}"`);
+        const finalPNGs = (await readdir(newDirPath)).map((file) => path.join(newDirPath, file));
+        resultPaths.push(...finalPNGs);
+      }
     } else {
       // Not a special format -- no extra steps needed
-      const originalFormat = imagePath.split(".").pop() ?? "png";
+      let originalFormat = imagePath.split(".").pop() ?? "png";
+      if (originalFormat === "jpg") {
+        originalFormat = "jpeg";
+      }
       await using tempPng = await getScopedTempFile("sips-remove-bg-1", "png");
       await runRemoveBgScript(imagePath, tempPng.path, bgColor, crop);
-      execSync(`sips -s format ${originalFormat.toLowerCase()} "${tempPng.path}" --out "${newPath}"`);
+
+      if (preferences.preserveFormat) {
+        execSync(`sips -s format ${originalFormat.toLowerCase()} "${tempPng.path}" --out "${newPath}"`);
+      } else {
+        newPath = path.join(path.dirname(newPath), path.basename(newPath, ".png") + ".png");
+        execSync(`mv "${tempPng.path}" "${newPath}"`);
+      }
     }
     resultPaths.push(newPath);
   }
