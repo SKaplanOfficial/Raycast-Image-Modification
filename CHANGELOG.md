@@ -11,6 +11,10 @@
 - Added setting to hide specific filters/filter categories from the filter list
 - Added 28 new filters
 
+## [Fix WebP optimization] - 2025-01-29
+
+- Fixed the cwebp path being incorrectly set when Optimizing WebP images
+
 ## [Fix avifenc Installation] - 2024-09-11
 
 - Fixed an issue where the `avifenc` and `avifdec` binaries were not being installed correctly
