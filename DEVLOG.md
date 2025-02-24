@@ -1,6 +1,17 @@
 # Image Modification DevLog - A more detailed changelog
 
-## Release 1.9.1 - TBD
+## Release 1.10.1 - TBD
+
+### 2025-02-24
+
+- Added changes from store version 1.10.0 (AI tools)
+- Added unique icon for remove background operation
+- Added support for tilde expansion in file paths
+- Updated metadata images to showcase AI tools and background removal
+- Updated ExifTool to version 13.21
+- Updated dependencies
+- Fixed ExifTool failing to install or not recognizing current install (Resolve #16884)
+- Fixed crash when trying to generate live preview for filters on PDFs (Resolve #16971)
 
 ### 2025-02-01
 
@@ -15,6 +26,30 @@
 - Added 'Remove Background' command to remove the background from selected images
   - Users can specify a color to replace the background with
   - Users can specify whether to crop the image to the foreground subject
+
+## Release 1.10.0 - 2025-02-21
+
+### 2025-02-14
+
+- Use `imagePaths` instead of `resultPaths` so that AI can supply other paths if needed (e.g. from tools of other extensions)
+- Remove success/failure toasts for AI tools
+
+### 2025-02-04
+
+- Add unique icon for each operation
+- Fixed evals that still used `@imagemod` instead of `@sips`
+- Fixed object undefined error when applying filters via the AI tool
+
+### 2025-01-30
+
+- Merged changes from store version 1.9.0 (new filters)
+- Adjust AI instructions for some tools to improve consistency
+- Undo extension rename (would cause too many issues on Raycast's end)
+
+### 2025-01-23
+
+- Added AI tool support for all image operations
+- Rename extension from `sips` to `imagemod`
 
 ## Release 1.9.0 - 2025-01-30
 

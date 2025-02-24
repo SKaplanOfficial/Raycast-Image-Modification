@@ -1,8 +1,17 @@
 # Image Modification Changelog
 
-## [Remove Background] - {PR_MERGE_DATE}
+## [Remove Background] - TBD
 
 - Added 'Remove Background' command to remove the background from selected images
+- Added two new metadata images showcases AI Tools and `Remove Background` command
+- Set 'Strip EXIF Data' command to be disabled by default
+- Updated to ExifTool version 13.21
+- Fixed ExifTool failing to install or not recognizing current install (Resolve #16884)
+- Fixed crash when trying to generate live preview for filters on PDFs (Resolve #16971)
+
+## [✨ AI Enhancements] - 2025-02-21
+
+- Add AI tool support for all image operations
 
 ## [Bug Fixes & New Filters] - 2025-01-30
 

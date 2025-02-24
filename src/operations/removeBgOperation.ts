@@ -1,6 +1,7 @@
 import {
   convertPDF,
   convertSVG,
+  expandTilde,
   getDestinationPaths,
   getScopedTempDirectory,
   getScopedTempFile,
@@ -29,7 +30,7 @@ const runRemoveBgScript = async (
   sourcePath: string,
   outputPath: string,
   bgColor?: Color,
-  crop = false,
+  crop = true,
   ignoreFailure = false,
 ) => {
   const result = await runAppleScript(
@@ -104,7 +105,12 @@ const runRemoveBgScript = async (
  */
 export default async function removeBg(sourcePaths: string[], bgColorString?: string, crop = false) {
   const preferences = getPreferenceValues<ExtensionPreferences & Preferences.RemoveBg>();
-  const newPaths = await getDestinationPaths(sourcePaths);
+  if (environment.commandName === "tools/remove-bg") {
+    preferences.preserveFormat = true;
+  }
+
+  const expandedPaths = sourcePaths.map((path) => expandTilde(path));
+  const newPaths = await getDestinationPaths(expandedPaths);
   const resultPaths: string[] = [];
 
   let bgColor: Color | undefined;
@@ -118,8 +124,8 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
     }
   }
 
-  for (const imagePath of sourcePaths) {
-    let newPath = newPaths[sourcePaths.indexOf(imagePath)];
+  for (const imagePath of expandedPaths) {
+    let newPath = newPaths[expandedPaths.indexOf(imagePath)];
     if (imagePath.toLowerCase().endsWith(".webp")) {
       // WEBP -> PNG -> Remove Background -> WEBP
       await using tempPNGfromWEBP = await getScopedTempFile("sips-remove-bg-1", "png");
@@ -139,6 +145,7 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
         newPath = path.join(path.dirname(newPath), path.basename(newPath, ".webp") + ".png");
         execSync(`mv "${tempPNGnoBG.path}" "${newPath}"`);
       }
+      resultPaths.push(newPath);
     } else if (imagePath.toLowerCase().endsWith(".svg")) {
       // SVG -> PNG -> Remove Background -> SVG
       await using tempPNGfromSVG = await getScopedTempFile("sips-remove-bg-1", "png");
@@ -156,6 +163,7 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
         newPath = path.join(path.dirname(newPath), path.basename(newPath, ".svg") + ".png");
         execSync(`mv "${tempPNGnoBG.path}" "${newPath}"`);
       }
+      resultPaths.push(newPath);
     } else if (imagePath.toLowerCase().endsWith(".avif")) {
       // AVIF -> PNG -> Remove Background -> AVIF
       await using tempPNGfromAVIF = await getScopedTempFile("sips-remove-bg-1", "png");
@@ -173,6 +181,7 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
         newPath = path.join(path.dirname(newPath), path.basename(newPath, ".avif") + ".png");
         execSync(`mv "${tempPNGnoBG.path}" "${newPath}"`);
       }
+      resultPaths.push(newPath);
     } else if (imagePath.toLowerCase().endsWith(".pdf")) {
       // PDF -> PNG -> Remove Background -> PDF
       await using tempPNGfromPDFDir = await getScopedTempDirectory("sips-remove-bg-1");
@@ -193,8 +202,9 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
           parseInt(a?.split("-").at(-1) || "0") > parseInt(b?.split("-").at(-1) || "0") ? 1 : -1,
         );
         await makePDF(modifiedPNGs, newPath);
+        resultPaths.push(newPath);
       } else {
-        const newDirPath = path.join(path.dirname(newPath), path.basename(newPath, ".pdf") + " PNGs");
+        const newDirPath = path.join(path.dirname(newPath), path.basename(newPath, ".pdf") + "-pngs");
         execSync(`mv "${tempPNGnoBGDir.path}" "${newDirPath}"`);
         const finalPNGs = (await readdir(newDirPath)).map((file) => path.join(newDirPath, file));
         resultPaths.push(...finalPNGs);
@@ -205,7 +215,7 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
       if (originalFormat === "jpg") {
         originalFormat = "jpeg";
       }
-      await using tempPng = await getScopedTempFile("sips-remove-bg-1", "png");
+      await using tempPng = await getScopedTempFile("sips-remove-bg", "png");
       await runRemoveBgScript(imagePath, tempPng.path, bgColor, crop);
 
       if (preferences.preserveFormat) {
@@ -214,9 +224,9 @@ export default async function removeBg(sourcePaths: string[], bgColorString?: st
         newPath = path.join(path.dirname(newPath), path.basename(newPath, ".png") + ".png");
         execSync(`mv "${tempPng.path}" "${newPath}"`);
       }
+      resultPaths.push(newPath);
     }
-    resultPaths.push(newPath);
   }
-
   await moveImageResultsToFinalDestination(resultPaths);
+  return resultPaths;
 }
