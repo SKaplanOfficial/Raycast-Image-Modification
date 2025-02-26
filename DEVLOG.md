@@ -1,6 +1,6 @@
 # Image Modification DevLog - A more detailed changelog
 
-## Release 1.10.1 - TBD
+## Release 1.10.1 - 2025-02-24
 
 ### 2025-02-24
 
