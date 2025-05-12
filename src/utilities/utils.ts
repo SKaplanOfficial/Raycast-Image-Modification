@@ -28,7 +28,14 @@ import { getAVIFEncPaths } from "./avif";
 import { copyImagesAtPathsToClipboard, getClipboardImages } from "./clipboard";
 import { Direction, ImageInputSource, ImageResultHandling } from "./enums";
 import { mkdir } from "fs/promises";
-import { getFinderSelection, getForkLiftSelection, getHoudahSpotSelection, getNeoFinderSelection, getPathFinderSelection, getQSpaceSelection } from "./scripts/file-selection";
+import {
+  getFinderSelection,
+  getForkLiftSelection,
+  getHoudahSpotSelection,
+  getNeoFinderSelection,
+  getPathFinderSelection,
+  getQSpaceSelection,
+} from "./scripts/file-selection";
 
 /**
  * Adds an item to the list of temporary files to remove.
@@ -185,7 +192,7 @@ export const getSelectedImages = async (): Promise<string[]> => {
   }
 
   // Get selected images from Finder -- use as fallback for desktop selections & on error
-  const finderImages = (await getFinderSelection())
+  const finderImages = await getFinderSelection();
   if (activeApp == "Finder" || inputMethod == "Finder" || inputMethodError) {
     selectedImages = finderImages;
   } else {

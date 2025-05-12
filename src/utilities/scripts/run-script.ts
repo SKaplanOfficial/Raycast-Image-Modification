@@ -1,7 +1,7 @@
 import { execSync, spawn } from "child_process";
 
 export type ScriptOptions = Partial<{
-  language: "AppleScript" | "JXA" | "Shell" | "Swift" | "Python" | "Perl" | "Ruby" | "Lua";
+  language: "AppleScript" | "JXA";
   command: string;
   stderrCallback: (data: string) => void;
   timeout: number;
@@ -38,9 +38,6 @@ export function runScript<T>(
       script,
       ...trailingArgs.map((x) => x.toString()),
     );
-  } else if (!command && language === "Shell") {
-    command = "/bin/bash";
-    scriptArgs.push(...(script.startsWith("/") ? [] : ["-c"]), script, "--", ...trailingArgs.map((x) => x.toString()));
   }
 
   const env = process.env;

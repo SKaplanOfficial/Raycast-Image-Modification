@@ -12,6 +12,7 @@ end script
 
 on filterSelection:theItems
 	repeat with itemPath in theItems
+		set itemPath to itemPath as text
 		set AppleScript's text item delimiters to "."
 		set ext to last text item of itemPath
 
