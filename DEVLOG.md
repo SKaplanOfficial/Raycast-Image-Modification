@@ -1,5 +1,20 @@
 # Image Modification DevLog - A more detailed changelog
 
+## Release 1.10.2 - 2025-xx-xx
+
+### 2025-03-06
+
+- Rewrote various scripts to improve performance, using whichever language was fastest for the task. Improvements inspeed across the board:
+  - Finder selection detection using compiled AppleScript -> ~20-40% faster on average
+  - HoudahSpot selection detection using compiled AppleScript -> ~10-50% faster
+  - Path Finder selection detection using JXA -> ~15% faster for multi-file operations
+  - NeoFinder selection detection -> ~5-8% faster for muli-file operations
+  - Improvements become exponentially more pronounced with larger file selections
+
+### 2025-02-26
+
+- Added support for QSpace Pro
+
 ## Release 1.10.1 - 2025-02-24
 
 ### 2025-02-24

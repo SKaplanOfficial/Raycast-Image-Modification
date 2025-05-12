@@ -24,6 +24,7 @@ export enum ImageInputSource {
   PathFinderSelection = "Path Finder",
   NeoFinderSelection = "NeoFinder",
   HoudahSpotSelection = "HoudahSpot",
+  QSpaceSelection = "QSpace Pro",
   Clipboard = "Clipboard",
 }
 
