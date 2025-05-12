@@ -1,5 +1,11 @@
 # Image Modification Changelog
 
+## [Improved Selection Detection] - {PR_MERGE_DATE}
+
+- Added full support for using QSpace Pro.
+- Added experimental support for ForkLift.
+- Rewrote file selection detection scripts to improve performance.
+
 ## [Remove Background] - 2025-02-24
 
 - Added 'Remove Background' command to remove the background from selected images

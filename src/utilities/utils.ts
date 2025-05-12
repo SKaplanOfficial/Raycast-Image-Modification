@@ -28,7 +28,7 @@ import { getAVIFEncPaths } from "./avif";
 import { copyImagesAtPathsToClipboard, getClipboardImages } from "./clipboard";
 import { Direction, ImageInputSource, ImageResultHandling } from "./enums";
 import { mkdir } from "fs/promises";
-import { getFinderSelection, getHoudahSpotSelection, getNeoFinderSelection, getPathFinderSelection } from "./scripts/file-selection";
+import { getFinderSelection, getForkLiftSelection, getHoudahSpotSelection, getNeoFinderSelection, getPathFinderSelection, getQSpaceSelection } from "./scripts/file-selection";
 
 /**
  * Adds an item to the list of temporary files to remove.
@@ -95,7 +95,7 @@ export const cleanup = async () => {
  * @returns A promise resolving to the list of selected image paths.
  */
 export const getSelectedImages = async (): Promise<string[]> => {
-  const selectedImages: string[] = [];
+  let selectedImages: string[] = [];
 
   // Get name of preferred file manager
   const extensionPreferences = getPreferenceValues<Preferences>();
@@ -128,15 +128,7 @@ export const getSelectedImages = async (): Promise<string[]> => {
   // Attempt to get selected images from Path Finder
   try {
     if (inputMethod == ImageInputSource.PathFinderSelection || activeApp == "Path Finder") {
-      const pathFinderImages = await getPathFinderSelection();
-      pathFinderImages.forEach((imgPath) => {
-        if (!selectedImages.includes(imgPath)) {
-          selectedImages.push(imgPath);
-        }
-      });
-      if (selectedImages.length > 0) {
-        return selectedImages;
-      }
+      selectedImages = await getPathFinderSelection();
     }
   } catch (error) {
     // Error getting images from Path Finder, fall back to Finder
@@ -147,15 +139,7 @@ export const getSelectedImages = async (): Promise<string[]> => {
   // Attempt to get selected images from NeoFinder
   try {
     if (inputMethod == ImageInputSource.NeoFinderSelection || activeApp == "NeoFinder") {
-      const neoFinderImages = await getNeoFinderSelection();
-      neoFinderImages.forEach((imgPath) => {
-        if (!selectedImages.includes(imgPath)) {
-          selectedImages.push(imgPath);
-        }
-      });
-      if (selectedImages.length > 0) {
-        return selectedImages;
-      }
+      selectedImages = await getNeoFinderSelection();
     }
   } catch (error) {
     // Error getting images from NeoFinder, fall back to Finder
@@ -166,15 +150,7 @@ export const getSelectedImages = async (): Promise<string[]> => {
   // Attempt to get selected images from HoudahSpot
   try {
     if (inputMethod == ImageInputSource.HoudahSpotSelection || activeApp == "HoudahSpot") {
-      const houdahSpotImages = await getHoudahSpotSelection();
-      houdahSpotImages.forEach((imgPath) => {
-        if (!selectedImages.includes(imgPath)) {
-          selectedImages.push(imgPath);
-        }
-      });
-      if (selectedImages.length > 0) {
-        return selectedImages;
-      }
+      selectedImages = await getHoudahSpotSelection();
     }
   } catch (error) {
     // Error getting images from HoudahSpot, fall back to Finder
@@ -182,10 +158,36 @@ export const getSelectedImages = async (): Promise<string[]> => {
     inputMethodError = true;
   }
 
+  // Attempt to get selected images from QSpace Pro
+  try {
+    if (inputMethod == ImageInputSource.QSpaceSelection || activeApp == "QSpace Pro") {
+      selectedImages = await getQSpaceSelection();
+    }
+  } catch (error) {
+    // Error getting images from QSpace Pro, fall back to Finder
+    console.error(`Couldn't get images from QSpace Pro: ${error}`);
+    inputMethodError = true;
+  }
+
+  // Attempt to get selected images from ForkLift
+  try {
+    if (inputMethod == ImageInputSource.ForkLiftSelection || activeApp == "ForkLift") {
+      selectedImages = await getForkLiftSelection();
+    }
+  } catch (error) {
+    // Error getting images from ForkLift, fall back to Finder
+    console.error(`Couldn't get images from ForkLift: ${error}`);
+    inputMethodError = true;
+  }
+
+  if (selectedImages.length > 0) {
+    return selectedImages.filter((item, index) => selectedImages.indexOf(item) === index);
+  }
+
   // Get selected images from Finder -- use as fallback for desktop selections & on error
   const finderImages = (await getFinderSelection())
   if (activeApp == "Finder" || inputMethod == "Finder" || inputMethodError) {
-    selectedImages.push(...finderImages);
+    selectedImages = finderImages;
   } else {
     // Add desktop selections
     finderImages.forEach((imgPath) => {
@@ -195,7 +197,7 @@ export const getSelectedImages = async (): Promise<string[]> => {
     });
   }
 
-  return selectedImages;
+  return selectedImages.filter((item, index) => selectedImages.indexOf(item) === index);
 };
 
 /**

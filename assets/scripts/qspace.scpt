@@ -1,3 +1,4 @@
+//@osa-lang:JavaScript
 supportedTypes = {
   png: true,
   jpg: true,
@@ -38,67 +39,61 @@ supportedTypes = {
   avif: true,
 };
 
+function requestAutomationPermissionForApplication_(applicationName) {
+	const currentApplication = Application.currentApplication();
+	currentApplication.includeStandardAdditions = true;
+	const alert = currentApplication.displayAlert('Permission Needed', { message: 'To use Image Modification on selected images in ' + applicationName + ', you must allow Raycast to control ' + applicationName + ' in System Settings > Privacy & Security > Automation.', buttons: ['Dismiss', 'Open Privacy Settings']});
+	const btn = alert.buttonReturned;
+	if (btn == 'Open Privacy Settings') {
+		currentApplication.openLocation('x-apple.systempreferences:com.apple.preference.security?Privacy_Automation');
+	}
+	return btn;
+}
+
 function imagePathsForItemsInSelection(selection) {
-  const qspace = Application("QSpace Pro");
-  const imagePaths = selection.flatMap((urlString) => {
-    const filePath = urlString.replace(/.*:(\/\/)?(\/.*\..*$)/g, "$2");
-    const fileExtension = filePath.replace(/.*\.(.+)$/g, "$1").toLowerCase();
-    if (supportedTypes[fileExtension]) {
-      return [filePath];
-    }
-    return [];
-  });
-  return imagePaths;
+	const imagePaths = [];
+	for (const filePath of selection) {
+		const fileExtension = filePath.slice((filePath.lastIndexOf('.') - 1 >>> 0) + 2).toLowerCase();
+		if (supportedTypes[fileExtension]) {
+			imagePaths.push(filePath);
+		}
+	}
+	return imagePaths;
 }
 
 function run() {
-  try {
-    const qspace = Application("QSpace Pro");
-    let imagePaths = [];
+	let imagePaths = [];
+	try {
+		const qspace = Application('QSpace Pro');
+		qspace.includeStandardAdditions = true;
 
-    let selection = qspace.selectedItems.urlstr();
-    if (selection.length > 0) {
-      imagePaths = imagePathsForItemsInSelection(selection);
-    }
+		let selection = qspace.selectedItems.urlstr()
+		if (selection.length > 0) {
+			imagePaths = imagePathsForItemsInSelection(selection.map(x => x.substring(7)))
+			if (imagePaths.length > 0) {
+				return JSON.stringify(imagePaths);
+			}
+		}
 
-    const windowIds = qspace.windows.id();
-    if (imagePaths.length == 0 && windowIds.length > 0) {
-      for (const windowId of windowIds) {
-        const window = qspace.windows.byId(windowId);
-        const selection = window.activatedPane.selectedItems.urlstr();
-        if (selection.length > 0) {
-          imagePaths = imagePathsForItemsInSelection(selection);
-          if (imagePaths.length > 0) {
-            break;
-          }
-        }
-      }
-    }
-    return imagePaths;
-  } catch (error) {
-    if (error.errorNumber === -1743) {
-      const currentApplication = Application.currentApplication();
-      currentApplication.includeStandardAdditions = true;
-      const alert = currentApplication.displayAlert("Permission Needed", {
-        message:
-          "To use Image Modification on selected images in QSpace Pro, you must allow Raycast to control QSpace Pro in System Settings > Privacy & Security > Automation.",
-        buttons: ["Dismiss", "Open Privacy Settings"],
-      });
-      const btn = alert.buttonReturned;
-      if (btn == "Open Privacy Settings") {
-        currentApplication.openLocation("x-apple.systempreferences:com.apple.preference.security?Privacy_Automation");
-      }
-    } else {
-      console.log(
-        "Error:",
-        error.message,
-        "errorNumber:",
-        error.errorNumber,
-        "line:",
-        error.line,
-        "column:",
-        error.column,
-      );
-    }
-  }
+		const windowIds = qspace.windows.id();
+		if (windowIds.length > 0) {
+			for (const windowId of windowIds) {
+				const window = qspace.windows.byId(windowId);
+				selection = window.selectedItems.urlstr();
+				if (selection.length > 0) {
+					imagePaths = imagePathsForItemsInSelection(selection.map(x => x.substring(7)))
+					if (imagePaths.length > 0 ) {
+						break;
+					}
+				}
+			}
+		}
+	} catch (error) {
+		if (error.errorNumber === -1743) {
+			requestAutomationPermissionForApplication_('QSpace Pro');
+		} else {
+			console.log('Error:', error.message, 'errorNumber:', error.errorNumber, 'line:', error.line, 'column:', error.column);
+		}
+	}
+	return JSON.stringify(imagePaths);
 }

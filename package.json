@@ -63,6 +63,10 @@
         {
           "title": "Clipboard",
           "value": "Clipboard"
+        },
+         {
+          "title": "Selection in ForkLift (Experimental)",
+          "value": "ForkLift"
         }
       ],
       "default": "Finder",

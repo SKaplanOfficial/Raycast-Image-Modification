@@ -25,6 +25,7 @@ export enum ImageInputSource {
   NeoFinderSelection = "NeoFinder",
   HoudahSpotSelection = "HoudahSpot",
   QSpaceSelection = "QSpace Pro",
+  ForkLiftSelection = "ForkLift",
   Clipboard = "Clipboard",
 }
 

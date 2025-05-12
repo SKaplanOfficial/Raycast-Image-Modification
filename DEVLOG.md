@@ -1,6 +1,14 @@
 # Image Modification DevLog - A more detailed changelog
 
-## Release 1.10.2 - 2025-xx-xx
+## Release 1.11.0 - 2025-xx-xx
+
+## 2025-05-03
+
+- Apply speed improvements to QSpace Pro script
+
+## 2025-04-11
+
+- Added beta support for detecting selection in ForkLift
 
 ### 2025-03-06
 
