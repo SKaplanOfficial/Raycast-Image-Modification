@@ -1,12 +1,4 @@
 {
   "printWidth": 120,
-  "singleQuote": false,
-  "overrides": [
-    {
-      "files": "*.jxa",
-      "options": {
-        "parser": "babel"
-      }
-    }
-  ]
+  "singleQuote": false
 }

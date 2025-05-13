@@ -53,7 +53,7 @@ export function runScript<T>(
 
   let data = "";
   let sendMessage: (msg: string) => void = (msg: string) => {
-    msg;
+    console.log(msg);
   };
 
   const proc = spawn(command, scriptArgs, { env });
@@ -80,7 +80,6 @@ export function runScript<T>(
     if (message?.length > 0) {
       proc.stdin.cork();
       proc.stdin.write(`${message}\r\n`);
-      proc.stdin.pipe(proc.stdin, { end: false });
       process.nextTick(() => proc.stdin.uncork());
       if (options?.logSentMessages) console.log(`Sent message: ${message}`);
     }
@@ -95,20 +94,26 @@ export function runScript<T>(
             } catch (error) {
               if (options?.logErrors) console.error(`Error killing process: ${error}`);
             }
-            reject("Script timed out");
+            if (options?.logErrors) console.error("Script timed out");
+            proc.stdin.end();
+            proc.kill();
+            return reject("Script timed out");
           }, options?.timeout)
         : undefined;
 
       proc.on("close", (code) => {
         if (code !== 0) {
           if (options?.logErrors) console.error(`Script exited with code ${code}`);
+          proc.stdin.end();
+          proc.kill();
+          return reject(`Script exited with code ${code}`);
         }
         clearTimeout(timeout);
 
         let result: T | string;
         try {
           result = JSON.parse(data) as T;
-        } catch (error) {
+        } catch {
           result = data.trim();
         }
         if (options?.logFinalOutput) console.log(`Script output: ${result}`);
